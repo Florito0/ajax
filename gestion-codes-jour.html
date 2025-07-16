@@ -1,0 +1,22 @@
+<a href="#" class="back-button" data-target="gestion">← Retour</a>
+
+<div class="container" id="code-jour-container">
+    <div class="header">
+        <h1>Gestion des Codes Jour</h1>
+        <div class="subtitle">Planning Annuel des Codes Discothèque</div>
+    </div>
+
+    <div class="year-month-nav" id="yearMonthNav">
+        </div>
+
+    <div class="calendar" id="calendar">
+        </div>
+
+    <div class="controls">
+        <span class="generate-label">Générer Code Automatique</span>
+        <button class="generate-option" onclick="codeJourManager.generateCodes('month')">Mois</button>
+        <button class="generate-option" onclick="codeJourManager.generateCodes('year')">Année</button>
+        <button class="export-btn" onclick="codeJourManager.saveCodesToDB()">💾 Enregistrer</button>
+        <button class="export-btn" onclick="codeJourManager.exportToPDF()">Exporter en PDF</button>
+    </div>
+</div>

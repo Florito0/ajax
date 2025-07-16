@@ -1,0 +1,2197 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Menu Vertical - Discothèque</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+        }
+
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            min-height: 100vh;
+            display: flex;
+        }
+
+        /* Style de la barre de menu verticale */
+        .sidebar {
+            width: 220px;
+            background-color: #1e1e1e;
+            padding: 20px 0;
+            position: fixed;
+            height: 100vh;
+            border-right: 1px solid #333;
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s ease;
+        }
+
+        .sidebar.collapsed {
+            width: 60px;
+        }
+
+        .sidebar .toggle-btn {
+            width: 40px;
+            height: 40px;
+            margin: 10px auto;
+            background: #2c2c2c;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .sidebar .toggle-btn:hover {
+            background: #444;
+        }
+
+        .toggle-btn .icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            position: relative;
+        }
+
+        .toggle-btn .icon.chevron-left::before,
+        .toggle-btn .icon.chevron-right::before {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 12px;
+            height: 12px;
+            border-right: 3px solid #ffffff;
+            border-bottom: 3px solid #ffffff;
+            transform: translate(-50%, -50%) rotate(45deg);
+        }
+
+        .toggle-btn .icon.chevron-left::before {
+            transform: translate(-50%, -50%) rotate(135deg);
+        }
+
+        .sidebar .menu-item {
+            width: 90%;
+            height: 40px;
+            margin: 10px auto;
+            padding: 8px;
+            background: #2c2c2c;
+            border: none;
+            border-radius: 8px;
+            text-align: left;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #ffffff;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            position: relative;
+        }
+
+        .sidebar.collapsed .menu-item {
+            width: 40px;
+            justify-content: center;
+        }
+
+        .sidebar .menu-item:hover {
+            background: #444;
+            transform: scale(1.02);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .sidebar .menu-item.active {
+            background: linear-gradient(to right, #9733EE, #DA22FF);
+            box-shadow: 0 0 15px rgba(151, 51, 238, 0.7);
+        }
+
+        .sidebar .menu-item.pulse {
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(151, 51, 238, 0.7); }
+            70% { box-shadow: 0 0 0 10px rgba(151, 51, 238, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(151, 51, 238, 0); }
+        }
+
+        .sidebar .menu-item .icon {
+            width: 24px;
+            height: 24px;
+            position: relative;
+        }
+
+        .sidebar .menu-item span.text {
+            font-size: 14px;
+            display: inline;
+        }
+
+        .sidebar.collapsed .menu-item span.text {
+            display: none;
+        }
+
+        .sidebar.collapsed .menu-item:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            left: 60px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: #333;
+            color: #ffffff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+            opacity: 1;
+            transition: opacity 0.2s ease;
+        }
+
+        .sidebar.collapsed .menu-item::after {
+            opacity: 0;
+        }
+
+        .icon.list::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 0;
+            width: 16px;
+            height: 2px;
+            background: #ffffff;
+            box-shadow: 0 6px 0 0 #ffffff, 0 12px 0 0 #ffffff;
+        }
+
+        .icon.calendar::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 2px;
+        }
+
+        .icon.calendar::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 4px;
+            height: 4px;
+            background: #ffffff;
+            box-shadow: 6px 0 0 0 #ffffff;
+        }
+
+        .icon.users::before,
+        .icon.users::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            width: 6px;
+            height: 6px;
+            background: #ffffff;
+            border-radius: 50%;
+        }
+
+        .icon.users::before {
+            left: 4px;
+        }
+
+        .icon.users::after {
+            left: 14px;
+        }
+
+        .icon.users::before {
+            box-shadow: 0 8px 0 0 #ffffff;
+        }
+
+        .icon.users::after {
+            box-shadow: 0 8px 0 0 #ffffff;
+        }
+
+        .icon.user::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 8px;
+            width: 8px;
+            height: 8px;
+            background: #ffffff;
+            border-radius: 50%;
+        }
+
+        .icon.user::after {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 4px;
+            width: 16px;
+            height: 10px;
+            background: #ffffff;
+            border-radius: 4px 4px 0 0;
+            clip-path: polygon(0 100%, 20% 0, 80% 0, 100% 100%);
+        }
+
+        .icon.screen::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 16px;
+            height: 12px;
+            border: 2px solid #ffffff;
+            border-radius: 2px;
+        }
+
+        .icon.screen::after {
+            content: '';
+            position: absolute;
+            top: 18px;
+            left: 8px;
+            width: 8px;
+            height: 2px;
+            background: #ffffff;
+        }
+
+        .icon.chart::before {
+            content: '';
+            position: absolute;
+            top: 12px;
+            left: 4px;
+            width: 4px;
+            height: 8px;
+            background: #ffffff;
+            box-shadow: 6px -4px 0 0 #ffffff, 12px -8px 0 0 #ffffff;
+        }
+
+        .icon.gear::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 6px;
+            width: 12px;
+            height: 12px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+            background: radial-gradient(circle, transparent 0%, transparent 50%, #ffffff 50%, #ffffff 70%, transparent 70%);
+        }
+
+        .main-content {
+            margin-left: 220px;
+            padding: 30px;
+            width: calc(100% - 220px);
+            transition: all 0.3s ease;
+        }
+
+        .main-content.collapsed {
+            margin-left: 60px;
+            width: calc(100% - 60px);
+        }
+
+        .content-section {
+            display: none;
+            background-color: #1e1e1e;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.3);
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        .content-section h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #ffffff;
+            font-size: 32px;
+            font-weight: 700;
+            letter-spacing: 1px;
+        }
+
+        .content-section .subtitle {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #cccccc;
+            font-size: 16px;
+            font-weight: 400;
+        }
+
+        .submenu-content {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 25px;
+            padding: 10px;
+        }
+
+        .submenu-content .submenu-item {
+            padding: 20px;
+            background: #2c2c2c;
+            border: none;
+            border-radius: 12px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 16px;
+            font-weight: 500;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.2);
+        }
+
+        .submenu-content .submenu-item:hover {
+            background: #444;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        .submenu-content .submenu-item .icon {
+            width: 24px;
+            height: 24px;
+            position: relative;
+        }
+
+        .submenu-content .submenu-item .description {
+            font-size: 12px;
+            color: #cccccc;
+            margin-top: 5px;
+        }
+
+        .icon.group::before,
+        .icon.group::after {
+            content: '';
+            position: absolute;
+            top: 4px;
+            width: 6px;
+            height: 6px;
+            background: #ffffff;
+            border-radius: 50%;
+        }
+
+        .icon.group::before {
+            left: 4px;
+        }
+
+        .icon.group::after {
+            left: 14px;
+        }
+
+        .icon.group::before {
+            box-shadow: 0 8px 0 0 #ffffff;
+        }
+
+        .icon.group::after {
+            box-shadow: 0 8px 0 0 #ffffff;
+        }
+
+        .icon.ticket::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 4px;
+            width: 16px;
+            height: 12px;
+            border: 2px solid #ffffff;
+            border-radius: 2px;
+        }
+
+        .icon.ticket::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 18px;
+            width: 4px;
+            height: 4px;
+            background: #121212;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+        }
+
+        .icon.shirt::before {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 4px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid transparent;
+            border-right: 8px solid transparent;
+            border-bottom: 8px solid #ffffff;
+        }
+
+        .icon.shirt::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 10px;
+            width: 4px;
+            height: 4px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+        }
+
+        .icon.clock::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+        }
+
+        .icon.clock::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 12px;
+            width: 2px;
+            height: 6px;
+            background: #ffffff;
+            transform: rotate(45deg);
+        }
+
+        .icon.key::before {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 4px;
+            width: 12px;
+            height: 2px;
+            background: #ffffff;
+            box-shadow: 0 4px 0 0 #ffffff;
+        }
+
+        .icon.key::after {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 16px;
+            width: 6px;
+            height: 6px;
+            border: 2px solid #ffffff;
+            border-radius: 50%;
+        }
+
+        .icon.payment::before {
+            content: '';
+            position: absolute;
+            top: 6px;
+            left: 4px;
+            width: 16px;
+            height: 10px;
+            border: 2px solid #ffffff;
+            border-radius: 3px;
+        }
+
+        .icon.payment::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 8px;
+            width: 8px;
+            height: 2px;
+            background: #ffffff;
+        }
+
+        .icon.billing::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 2px;
+        }
+
+        .icon.billing::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 6px;
+            width: 12px;
+            height: 2px;
+            background: #ffffff;
+            box-shadow: 0 4px 0 0 #ffffff;
+        }
+
+        .back-button {
+            display: inline-block;
+            margin-bottom: 20px;
+            padding: 10px 20px;
+            background: #333;
+            border-radius: 8px;
+            color: #ffffff;
+            text-decoration: none;
+            font-size: 14px;
+            transition: background 0.3s ease;
+        }
+
+        .back-button:hover {
+            background: #444;
+        }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .modal-content {
+            background: #1e1e1e;
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 0 20px rgba(151, 51, 238, 0.5);
+        }
+
+        .modal-content h2 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #ffffff;
+        }
+
+        .modal-content p {
+            font-size: 16px;
+            color: #cccccc;
+            margin-bottom: 20px;
+        }
+
+        .modal-content button {
+            padding: 10px 20px;
+            background: linear-gradient(to right, #9733EE, #DA22FF);
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .modal-content button:hover {
+            background: linear-gradient(to right, #DA22FF, #9733EE);
+        }
+
+        .modal-content .checkbox {
+            margin-top: 15px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            font-size: 14px;
+            color: #cccccc;
+        }
+
+        #profile .cover-section {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            background: linear-gradient(135deg, #2c2c2c, #1e1e1e);
+            border-radius: 15px;
+            margin-bottom: 30px;
+            overflow: hidden;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        #profile .cover-section img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        #profile .cover-section .placeholder {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+            color: #999;
+            font-size: 14px;
+            opacity: 0.7;
+        }
+
+        #profile .cover-section .placeholder .icon {
+            width: 40px;
+            height: 40px;
+            position: relative;
+        }
+
+        #profile .cover-section .placeholder .icon.image::before {
+            content: '';
+            position: absolute;
+            top: 5px;
+            left: 5px;
+            width: 30px;
+            height: 20px;
+            border: 2px solid #999;
+            border-radius: 3px;
+            transition: all 0.3s ease;
+        }
+
+        #profile .cover-section .placeholder .icon.image::after {
+            content: '';
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            width: 10px;
+            height: 10px;
+            background: #999;
+            border-radius: 50%;
+            transition: all 0.3s ease;
+        }
+
+        #profile .cover-section .cover-actions {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            display: flex;
+            gap: 10px;
+        }
+
+        #profile .cover-section .cover-actions button,
+        #profile .cover-section .cover-actions label {
+            padding: 8px 16px;
+            background: #ffffff;
+            color: #121212;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #profile .cover-section .cover-actions button:hover,
+        #profile .cover-section .cover-actions label:hover {
+            background: #e0e0e0;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #profile .cover-section input[type="file"] {
+            display: none;
+        }
+
+        #profile .cover-section .error-message {
+            position: absolute;
+            bottom: 15px;
+            left: 15px;
+            font-size: 12px;
+            color: #ff5555;
+            display: none;
+        }
+
+        #profile .cover-section.invalid .error-message {
+            display: block;
+        }
+
+        #profile .form-section {
+            display: grid;
+            gap: 30px;
+            background: #252525;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.3);
+        }
+
+        #profile .form-section .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            position: relative;
+        }
+
+        #profile .form-section .form-group label {
+            font-size: 16px;
+            color: #cccccc;
+            font-weight: 500;
+        }
+
+        #profile .form-section .form-group input,
+        #profile .form-section .form-group textarea,
+        #profile .form-section .form-group select {
+            padding: 12px;
+            background: #2c2c2c;
+            border: 1px solid #444;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.2);
+        }
+
+        #profile .form-section .form-group input:focus,
+        #profile .form-section .form-group textarea:focus,
+        #profile .form-section .form-group select:focus {
+            outline: none;
+            border-color: #9733EE;
+            box-shadow: 0 0 8px rgba(151, 51, 238, 0.5);
+            transform: scale(1.01);
+        }
+
+        #profile .form-section .form-group .error-message {
+            font-size: 12px;
+            color: #ff5555;
+            display: none;
+        }
+
+        #profile .form-section .form-group.invalid input,
+        #profile .form-section .form-group.invalid textarea,
+        #profile .form-section .form-group.invalid select {
+            border-color: #ff5555;
+            box-shadow: 0 0 5px rgba(255, 85, 85, 0.5);
+        }
+
+        #profile .form-section .form-group.invalid .error-message {
+            display: block;
+        }
+
+        #profile .form-section .address-group,
+        #profile .form-section .contact-group {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        #profile .form-section .address-group .full-width {
+            grid-column: span 2;
+        }
+
+        #profile .form-section .contact-group .phone-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        #profile .form-section .contact-group .phone-group select {
+            width: 120px;
+        }
+
+        @media (max-width: 768px) {
+            #profile .form-section .address-group,
+            #profile .form-section .contact-group {
+                grid-template-columns: 1fr;
+            }
+
+            #profile .form-section .address-group .full-width {
+                grid-column: span 1;
+            }
+
+            #profile .form-section .contact-group .phone-group {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            #profile .form-section .contact-group .phone-group select {
+                width: 100%;
+            }
+        }
+
+        #profile .save-section {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+        }
+
+        #profile .save-section button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        #profile .save-section .save-btn {
+            background: linear-gradient(to right, #9733EE, #DA22FF);
+            color: #ffffff;
+        }
+
+        .tooltip-container {
+            position: relative;
+            display: inline-block;
+        }
+
+        .tooltip-container .tooltip {
+            visibility: hidden;
+            width: 200px;
+            background-color: #333;
+            color: #ffffff;
+            text-align: center;
+            border-radius: 6px;
+            padding: 5px;
+            position: absolute;
+            z-index: 1;
+            top: 50%;
+            left: 110%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+        }
+
+        .tooltip-container:hover .tooltip {
+            visibility: visible;
+            opacity: 1;
+        }
+
+        .tooltip-container .tooltip::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            right: 100%;
+            margin-top: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: transparent #333 transparent transparent;
+        }
+
+        #profile .save-section .save-btn:hover {
+            background: linear-gradient(to right, #DA22FF, #9733EE);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(151, 51, 238, 0.5);
+        }
+
+        #profile .save-section .cancel-btn {
+            background: #444;
+            color: #ffffff;
+        }
+
+        #profile .save-section .cancel-btn:hover {
+            background: #555;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.4);
+        }
+
+        .confirmation-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .confirmation-modal .modal-content {
+            background: #1e1e1e;
+            padding: 20px;
+            border-radius: 10px;
+            text-align: center;
+            max-width: 400px;
+            width: 90%;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .confirmation-modal .modal-content p {
+            font-size: 16px;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .confirmation-modal .modal-content button {
+            padding: 10px 20px;
+            background: linear-gradient(to right, #9733EE, #DA22FF);
+            border: none;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 16px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .confirmation-modal .modal-content button:hover {
+            background: linear-gradient(to right, #DA22FF, #9733EE);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(151, 51, 238, 0.5);
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 60px;
+            }
+
+            .sidebar:hover {
+                width: 220px;
+            }
+
+            .main-content {
+                margin-left: 60px;
+                width: calc(100% - 60px);
+            }
+
+            .main-content.collapsed {
+                margin-left: 60px;
+                width: calc(100% - 60px);
+            }
+
+            .submenu-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* NOUVEAU: Styles pour l'icône du kiosque dans la section Configuration */
+        .icon.kiosk::before {
+            content: '';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 16px;
+            height: 16px;
+            border: 2px solid #ffffff;
+            border-radius: 2px;
+        }
+
+        .icon.kiosk::after {
+            content: '';
+            position: absolute;
+            top: 8px;
+            left: 8px;
+            width: 8px;
+            height: 8px;
+            background: #ffffff;
+        }
+
+        /* NOUVEAU: Styles pour la section Kiosque */
+        .kiosque-section {
+            display: grid;
+            gap: 30px;
+            background: linear-gradient(145deg, #1a1a1a, #222222);
+            padding: 30px;
+            border-radius: 16px;
+            box-shadow: 0 12px 32px rgba(0, 0, 0, 0.4);
+            margin-top: 20px;
+            backdrop-filter: blur(10px);
+        }
+
+        .kiosque-section h3 {
+            font-size: 26px;
+            font-weight: 700;
+            color: #ffffff;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #444;
+            padding-bottom: 12px;
+            letter-spacing: 0.5px;
+        }
+
+        .alerts-container {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 24px;
+        }
+
+        .alert-column {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            background: rgba(40, 40, 40, 0.7);
+            padding: 24px;
+            border-radius: 12px;
+            box-shadow: 0 6px 16px rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .alert-column:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 24px rgba(151, 51, 238, 0.3);
+        }
+
+        .alert-column h4 {
+            font-size: 20px;
+            font-weight: 600;
+            color: #ffffff;
+            margin-bottom: 16px;
+            letter-spacing: 0.3px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .form-group label {
+            font-size: 14px;
+            color: #e0e0e0;
+            font-weight: 500;
+            letter-spacing: 0.2px;
+        }
+
+        .form-group input[type="number"] {
+            padding: 12px;
+            background: #2c2c2c;
+            border: 1px solid #555;
+            border-radius: 8px;
+            color: #ffffff;
+            font-size: 14px;
+            width: 100%;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input[type="number"]:focus {
+            border-color: #DA22FF;
+            box-shadow: 0 0 8px rgba(218, 34, 255, 0.4);
+            outline: none;
+        }
+
+        .form-group input[type="color"] {
+            padding: 2px;
+            height: 44px;
+            width: 100%;
+            background: #2c2c2c;
+            border: 1px solid #555;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .form-group input[type="color"]:hover {
+            border-color: #DA22FF;
+        }
+
+        .toggle-group {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            position: relative;
+        }
+
+        .toggle-group label {
+            font-size: 14px;
+            color: #e0e0e0;
+            font-weight: 500;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .toggle-group label:hover::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2c2c2c;
+            color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+        }
+
+        .toggle-group label:hover::before {
+            content: "";
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #2c2c2c transparent transparent transparent;
+            z-index: 10;
+        }
+
+        .toggle-switch {
+            position: relative;
+            width: 50px;
+            height: 24px;
+        }
+
+        .toggle-switch input[type="checkbox"] {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+            z-index: 1;
+        }
+
+        .toggle-slider {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #444;
+            transition: background-color 0.3s ease;
+            border-radius: 24px;
+        }
+
+        .toggle-slider:before {
+            position: absolute;
+            content: "";
+            height: 20px;
+            width: 20px;
+            left: 2px;
+            bottom: 2px;
+            background-color: #ffffff;
+            transition: transform 0.3s ease;
+            border-radius: 50%;
+        }
+
+        .toggle-switch input:checked + .toggle-slider {
+            background: linear-gradient(90deg, #9733EE, #DA22FF);
+        }
+
+        .toggle-switch input:checked + .toggle-slider:before {
+            transform: translateX(26px);
+        }
+
+        .notification {
+            position: absolute;
+            top: -40px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #2c2c2c;
+            color: #ffffff;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 12px;
+            white-space: nowrap;
+            z-index: 20;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.3s ease;
+        }
+
+        .notification.show {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .notification::before {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border-width: 6px;
+            border-style: solid;
+            border-color: #2c2c2c transparent transparent transparent;
+            z-index: 20;
+        }
+
+        .alert-visual {
+            width: 70px;
+            height: 130px;
+            border: 2px solid #444;
+            border-radius: 12px;
+            background: transparent;
+            margin: 24px auto;
+            transition: border-color 0.3s ease, box-shadow 0.3s ease;
+            position: relative;
+            --alert-color: #444;
+        }
+
+        .alert-visual.active {
+            animation: glowPulse 2s infinite ease-in-out;
+        }
+
+        .alert-visual.alert-1.active {
+            animation: glowPulse 2.5s infinite ease-in-out;
+        }
+
+        .alert-visual.alert-2.active {
+            animation: glowPulse 2s infinite ease-in-out;
+        }
+
+        .alert-visual.alert-3.active {
+            animation: glowPulse 1.5s infinite ease-in-out;
+        }
+
+        @keyframes glowPulse {
+            0% { 
+                border-color: var(--alert-color); 
+                box-shadow: inset 0 0 5px var(--alert-color), inset 0 0 10px rgba(255, 255, 255, 0.1); 
+            }
+            50% { 
+                border-color: var(--alert-color); 
+                box-shadow: inset 0 0 10px var(--alert-color), inset 0 0 20px rgba(255, 255, 255, 0.2); 
+            }
+            100% { 
+                border-color: var(--alert-color); 
+                box-shadow: inset 0 0 5px var(--alert-color), inset 0 0 10px rgba(255, 255, 255, 0.1); 
+            }
+        }
+
+        .alert-column.disabled {
+            opacity: 0.6;
+        }
+
+        .alert-column.disabled .toggle-group,
+        .alert-column.disabled .toggle-switch {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .save-section {
+            display: flex;
+            justify-content: center;
+            margin-top: 30px;
+        }
+
+        .save-section button {
+            padding: 14px 36px;
+            background: linear-gradient(90deg, #9733EE, #DA22FF);
+            border: none;
+            border-radius: 10px;
+            color: #ffffff;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 6px 16px rgba(151, 51, 238, 0.4);
+            letter-spacing: 0.5px;
+        }
+
+        .save-section button:hover {
+            background: linear-gradient(90deg, #DA22FF, #9733EE);
+            transform: translateY(-3px);
+            box-shadow: 0 8px 24px rgba(151, 51, 238, 0.6);
+        }
+    </style>
+</head>
+<body>
+    <div class="modal" id="welcomeModal" role="dialog" aria-labelledby="welcomeModalTitle" aria-describedby="welcomeModalDesc" tabindex="-1">
+        <div class="modal-content">
+            <h2 id="welcomeModalTitle">Bienvenue !</h2>
+            <p id="welcomeModalDesc">Utilisez le menu à gauche pour gérer votre discothèque. Cliquez sur "Gestion" pour commencer à configurer les paramètres essentiels comme la capacité d'accueil et les tickets d'entrée.</p>
+            <button onclick="closeModal()">Commencer</button>
+            <div class="checkbox">
+                <input type="checkbox" id="dontShowAgain">
+                <label for="dontShowAgain">Ne plus afficher</label>
+            </div>
+        </div>
+    </div>
+
+    <div class="confirmation-modal" id="confirmationModal">
+        <div class="modal-content">
+            <p>Informations enregistrées avec succès !</p>
+            <button onclick="closeConfirmationModal()">OK</button>
+        </div>
+    </div>
+
+    <div class="sidebar" id="sidebar">
+        <button class="toggle-btn" onclick="toggleSidebar()" aria-label="Réduire/Étendre le menu">
+            <span id="toggleIcon" class="icon chevron-left"></span>
+        </button>
+        <a href="#" class="menu-item pulse active" data-target="gestion" aria-label="Gestion" data-tooltip="Gestion">
+            <span class="icon list"></span>
+            <span class="text">Gestion</span>
+        </a>
+        <a href="#" class="menu-item" data-target="reservation" aria-label="Réservation" data-tooltip="Réservation">
+            <span class="icon calendar"></span>
+            <span class="text">Réservation</span>
+        </a>
+        <a href="#" class="menu-item" data-target="client" aria-label="Kiosque" data-tooltip="Kiosque">
+            <span class="icon screen"></span>
+            <span class="text">Kiosque</span>
+        </a>
+        <a href="#" class="menu-item" data-target="profile" aria-label="Profile" data-tooltip="Profile">
+            <span class="icon user"></span>
+            <span class="text">Profile</span>
+        </a>
+        <a href="#" class="menu-item" data-target="rapports" aria-label="Rapports/Statistiques" data-tooltip="Rapports/Statistiques">
+            <span class="icon chart"></span>
+            <span class="text">Rapports/Statistiques</span>
+        </a>
+        <a href="#" class="menu-item" data-target="configuration" aria-label="Configuration" data-tooltip="Configuration">
+            <span class="icon gear"></span>
+            <span class="text">Configuration</span>
+        </a>
+    </div>
+
+    <div class="main-content" id="mainContent">
+        <div class="content-section" id="gestion">
+            <h2>Gestion</h2>
+            <div class="subtitle">Configurez les paramètres essentiels de votre discothèque</div>
+            <div class="submenu-content">
+                <a href="#" class="submenu-item" data-target="gestion-capacite">
+                    <span class="icon group"></span>
+                    Capacité d'accueil
+                    <div class="description">Définir le nombre maximum de clients</div>
+                </a>
+                <a href="#" class="submenu-item" data-target="gestion-tickets-entree">
+                    <span class="icon ticket"></span>
+                    Tickets d'entrée
+                    <div class="description">Gérer les prix et types de tickets</div>
+                </a>
+                <a href="#" class="submenu-item" data-target="gestion-tickets-vestiaire">
+                    <span class="icon shirt"></span>
+                    Tickets vestiaire
+                    <div class="description">Configurer les tickets pour le vestiaire</div>
+                </a>
+                <a href="#" class="submenu-item" data-target="gestion-heures-creuses">
+                    <span class="icon clock"></span>
+                    Heures creuses
+                    <div class="description">Définir les périodes à faible affluence</div>
+                </a>
+                <a href="#" class="submenu-item" data-target="gestion-code-jour">
+                    <span class="icon key"></span>
+                    Code jour
+                    <div class="description">Gérer les codes d'accès quotidiens</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="content-section" id="gestion-capacite">
+            <a href="#" class="back-button" data-target="gestion">← Retour</a>
+            <h2>Capacité d'Accueil</h2>
+            <div class="subtitle">Définir le nombre maximum de clients autorisés</div>
+            <p>Contenu de la gestion de la capacité d'accueil...</p>
+        </div>
+        <div class="content-section" id="gestion-tickets-entree">
+            <a href="#" class="back-button" data-target="gestion">← Retour</a>
+            <h2>Tickets d'Entrée</h2>
+            <div class="subtitle">Configurer les prix et types de tickets d'entrée</div>
+            <p>Contenu de la gestion des tickets d'entrée...</p>
+        </div>
+        <div class="content-section" id="gestion-tickets-vestiaire">
+            <a href="#" class="back-button" data-target="gestion">← Retour</a>
+            <h2>Tickets Vestiaire</h2>
+            <div class="subtitle">Gérer les tickets pour le vestiaire</div>
+            <p>Contenu de la gestion des tickets vestiaire...</p>
+        </div>
+       <div class="content-section" id="gestion-heures-creuses"></div>
+       <div class="content-section" id="gestion-code-jour"></div>
+
+        <div class="content-section" id="reservation">
+            <h2>Réservation</h2>
+            <div class="subtitle">Gérer les réservations des clients</div>
+            <p>Contenu de la page Réservation...</p>
+        </div>
+        <div class="content-section" id="client">
+            <h2>Client</h2>
+            <div class="subtitle">Consulter et gérer les informations des clients</div>
+            <p>Contenu de la page Client...</p>
+        </div>
+
+        <div class="content-section" id="profile">
+            <h2>Profile</h2>
+            <div class="subtitle">Modifier les informations de votre discothèque</div>
+            <div class="cover-section" id="coverSection">
+                <div class="placeholder" id="coverPlaceholder">
+                    <span class="icon image"></span>
+                    Aucune couverture sélectionnée
+                </div>
+                <img id="coverImage" src="" alt="Couverture de la discothèque" style="display: none;">
+                <div class="cover-actions">
+                    <label for="coverUpload" class="upload-btn">Ajouter une couverture</label>
+                    <button id="removeCoverBtn" style="display: none;">Supprimer la couverture</button>
+                    <input type="file" id="coverUpload" accept="image/*">
+                </div>
+                <span class="error-message" id="coverError">Veuillez ajouter une couverture.</span>
+            </div>
+            <form id="profileForm" class="form-section">
+                <div class="form-group">
+                    <label for="discoName">Nom de la discothèque</label>
+                    <input type="text" id="discoName" name="discoName" placeholder="Entrez le nom de la discothèque" required>
+                    <span class="error-message" id="discoNameError">Veuillez entrer le nom de la discothèque.</span>
+                </div>
+                <div class="form-group address-group">
+                    <div class="form-group">
+                        <label for="country">Pays</label>
+                        <select id="country" name="country">
+                            <option value="FR" selected>France</option>
+                            <option value="BE">Belgique</option>
+                            <option value="CH">Suisse</option>
+                            <option value="ES">Espagne</option>
+                            <option value="MC">Monaco</option>
+                            <option value="CA">Canada</option>
+                            <option value="US">États-Unis</option>
+                            <option value="GB">Royaume-Uni</option>
+                            <option value="DE">Allemagne</option>
+                            <option value="IT">Italie</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="city">Ville</label>
+                        <input type="text" id="city" name="city" placeholder="Entrez la ville" required>
+                        <span class="error-message" id="cityError">Veuillez entrer la ville.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="postalCode">Code postal</label>
+                        <input type="text" id="postalCode" name="postalCode" placeholder="Entrez le code postal" required>
+                        <span class="error-message" id="postalCodeError">Veuillez entrer un code postal valide.</span>
+                    </div>
+                    <div class="form-group full-width">
+                        <label for="address">Adresse complète</label>
+                        <textarea id="address" name="address" rows="3" placeholder="Entrez l'adresse complète (rue, numéro, etc.)" required></textarea>
+                        <span class="error-message" id="addressError">Veuillez entrer une adresse complète.</span>
+                    </div>
+                </div>
+                <div class="form-group contact-group">
+                    <div class="form-group">
+                        <label for="phone">Téléphone</label>
+                        <div class="phone-group">
+                            <select id="countryCode" name="countryCode">
+                                <option value="+33" selected>+33 (FR)</option>
+                                <option value="+32">+32 (BE)</option>
+                                <option value="+41">+41 (CH)</option>
+                                <option value="+34">+34 (ES)</option>
+                                <option value="+377">+377 (MC)</option>
+                                <option value="+1">+1 (CA/US)</option>
+                                <option value="+44">+44 (GB)</option>
+                                <option value="+49">+49 (DE)</option>
+                                <option value="+39">+39 (IT)</option>
+                            </select>
+                            <input type="tel" id="phone" name="phone" placeholder="Entrez le numéro" required>
+                        </div>
+                        <span class="error-message" id="phoneError">Veuillez entrer un numéro de téléphone valide.</span>
+                    </div>
+                    <div class="form-group">
+                        <label for="email">E-mail</label>
+                        <input type="email" id="email" name="email" placeholder="Entrez l'adresse e-mail" required>
+                        <span class="error-message" id="emailError">Veuillez entrer une adresse e-mail valide.</span>
+                    </div>
+                </div>
+                <div class="save-section">
+                    <button type="submit" class="save-btn">Enregistrer les informations</button>
+                    <button type="button" class="cancel-btn" onclick="resetForm()">Annuler</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="content-section" id="rapports">
+            <h2>Rapports/Statistiques</h2>
+            <div class="subtitle">Analyser les performances de votre discothèque</div>
+            <p>Contenu de la page Rapports/Statistiques...</p>
+        </div>
+
+        <div class="content-section" id="configuration">
+            <h2>Configuration</h2>
+            <div class="subtitle">Personnaliser les paramètres généraux</div>
+            <div class="submenu-content">
+                <a href="#" class="submenu-item" data-target="configuration-modes-paiement">
+                    <span class="icon payment"></span>
+                    Modes de paiement et Caisse
+                    <div class="description">Définissez les modes de paiement acceptés, vérifiez votre compte bancaire, et configurez les paiements en ligne</div>
+                </a>
+                <a href="#" class="submenu-item" data-target="configuration-abonnement">
+                    <span class="icon billing"></span>
+                    Abonnement et facturation
+                    <div class="description">Détails de facturation, mode de paiement</div>
+                </a>
+                <!-- NOUVEAU: Ajout de l'élément Kiosque dans la section Configuration -->
+                <a href="#" class="submenu-item" data-target="configuration-kiosque-container">
+                    <span class="icon kiosk"></span>
+                    Kiosque
+                    <div class="description">Configurer les paramètres du kiosque</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="content-section" id="configuration-modes-paiement">
+            <a href="#" class="back-button" data-target="configuration">← Retour</a>
+            <h2>Modes de paiement et Caisse</h2>
+            <div class="subtitle">Définissez les modes de paiement acceptés, vérifiez votre compte bancaire, et configurez les paiements en ligne</div>
+            <div class="submenu-content">
+                <a href="#" class="submenu-item" data-target="configuration-caisse-parametres">
+                    <span class="icon payment"></span>
+                    Paramètres de caisse
+                    <div class="description">Configurez vos paramètres fiscaux de vos prestations, personnalisez vos tickets</div>
+                </a>
+                <a href="#" class="submenu-item" data-target="configuration-verification-compte">
+                    <span class="icon payment"></span>
+                    Vérification du compte
+                    <div class="description">Commencer à percevoir vos versements</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="content-section" id="configuration-caisse-parametres">
+            <a href="#" class="back-button" data-target="configuration-modes-paiement">← Retour</a>
+            <h2>Paramètres de caisse</h2>
+            <div class="subtitle">Configurez vos paramètres fiscaux de vos prestations, personnalisez vos tickets</div>
+            <div class="submenu-content">
+                <a href="#" class="submenu-item" data-target="configuration-taxes">
+                    <span class="icon payment"></span>
+                    Paramètres de taxes
+                    <div class="description">Gérer les paramètres fiscaux</div>
+                </a>
+                <a href="#" class="submenu-item" data-target="configuration-tickets">
+                    <span class="icon ticket"></span>
+                    Paramètres des tickets
+                    <div class="description">Personnaliser vos tickets</div>
+                </a>
+            </div>
+        </div>
+
+        <div class="content-section" id="configuration-verification-compte">
+            <a href="#" class="back-button" data-target="configuration-modes-paiement">← Retour</a>
+            <h2>Vérification du compte</h2>
+            <div class="subtitle">Commencer à percevoir vos versements</div>
+            <p>Contenu de la vérification du compte...</p>
+        </div>
+
+        <div class="content-section" id="configuration-taxes">
+            <a href="#" class="back-button" data-target="configuration-caisse-parametres">← Retour</a>
+            <h2>Paramètres de taxes</h2>
+            <div class="subtitle">Gérer les paramètres fiscaux</div>
+            <div class="tax-section" style="margin-bottom: 30px;">
+                <h3 style="font-size: 20px; margin-bottom: 15px;">Taux de TVA</h3>
+                <div class="tax-rates" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div class="tax-rate-item" style="display: flex; align-items: center; justify-content: space-between; background: #2c2c2c; padding: 10px; border-radius: 8px;">
+                        <span>5.5%</span>
+                        <button class="delete-btn" style="background: none; border: none; color: #ff5555; cursor: pointer;">
+                            <span class="icon trash" style="width: 16px; height: 16px; position: relative; display: inline-block;">
+                                <span style="position: absolute; top: 2px; left: 2px; width: 12px; height: 2px; background: #ff5555;"></span>
+                                <span style="position: absolute; top: 6px; left: 0; width: 16px; height: 8px; border: 2px solid #ff5555; border-top: none; border-radius: 0 0 4px 4px;"></span>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="tax-rate-item" style="display: flex; align-items: center; justify-content: space-between; background: #2c2c2c; padding: 10px; border-radius: 8px;">
+                        <span>10%</span>
+                        <button class="delete-btn" style="background: none; border: none; color: #ff5555; cursor: pointer;">
+                            <span class="icon trash" style="width: 16px; height: 16px; position: relative; display: inline-block;">
+                                <span style="position: absolute; top: 2px; left: 2px; width: 12px; height: 2px; background: #ff5555;"></span>
+                                <span style="position: absolute; top: 6px; left: 0; width: 16px; height: 8px; border: 2px solid #ff5555; border-top: none; border-radius: 0 0 4px 4px;"></span>
+                            </span>
+                        </button>
+                    </div>
+                    <div class="tax-rate-item" style="display: flex; align-items: center; justify-content: space-between; background: #2c2c2c; padding: 10px; border-radius: 8px;">
+                        <span>20%</span>
+                        <button class="delete-btn" style="background: none; border: none; color: #ff5555; cursor: pointer;">
+                            <span class="icon trash" style="width: 16px; height: 16px; position: relative; display: inline-block;">
+                                <span style="position: absolute; top: 2px; left: 2px; width: 12px; height: 2px; background: #ff5555;"></span>
+                                <span style="position: absolute; top: 6px; left: 0; width: 16px; height: 8px; border: 2px solid #ff5555; border-top: none; border-radius: 0 0 4px 4px;"></span>
+                            </span>
+                        </button>
+                    </div>
+                </div>
+                <button class="add-tax-btn" style="margin-top: 15px; padding: 8px 16px; background: #444; border: none; border-radius: 8px; color: #ffffff; cursor: pointer; transition: background 0.3s ease;">
+                    + Ajouter un taux de TVA
+                </button>
+            </div>
+            <div class="ticket-section" style="margin-bottom: 30px;">
+                <h3 style="font-size: 20px; margin-bottom: 15px;">Ticket</h3>
+                <div class="ticket-items" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div class="ticket-item" style="display: flex; align-items: center; justify-content: space-between; background: #2c2c2c; padding: 10px; border-radius: 8px;">
+                        <span>Accès Entrée sans Boisson</span>
+                        <select style="padding: 5px; background: #333; border: 1px solid #444; border-radius: 5px; color: #ffffff;">
+                            <option value="5.5" selected>5.5%</option>
+                            <option value="10">10%</option>
+                            <option value="20">20%</option>
+                        </select>
+                    </div>
+                    <div class="ticket-item" style="display: flex; align-items: center; justify-content: space-between; background: #2c2c2c; padding: 10px; border-radius: 8px;">
+                        <span>Accès Entrée + Alcool et bouteille</span>
+                        <select style="padding: 5px; background: #333; border: 1px solid #444; border-radius: 5px; color: #ffffff;">
+                            <option value="5.5">5.5%</option>
+                            <option value="10">10%</option>
+                            <option value="20" selected>20%</option>
+                        </select>
+                    </div>
+                    <div class="ticket-item" style="display: flex; align-items: center; justify-content: space-between; background: #2c2c2c; padding: 10px; border-radius: 8px;">
+                        <span>Accès Heure Creuse</span>
+                        <select style="padding: 5px; background: #333; border: 1px solid #444; border-radius: 5px; color: #ffffff;">
+                            <option value="5.5">5.5%</option>
+                            <option value="10">10%</option>
+                            <option value="20" selected>20%</option>
+                        </select>
+                    </div>
+                    <div class="ticket-item" style="display: flex; align-items: center; justify-content: space-between; background: #2c2c2c; padding: 10px; border-radius: 8px;">
+                        <span>Accès Entrée + Soft</span>
+                        <select style="padding: 5px; background: #333; border: 1px solid #444; border-radius: 5px; color: #ffffff;">
+                            <option value="5.5">5.5%</option>
+                            <option value="10" selected>10%</option>
+                            <option value="20">20%</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="vestiaire-section">
+                <h3 style="font-size: 20px; margin-bottom: 15px;">Vestiaire</h3>
+                <div class="vestiaire-items" style="display: flex; flex-direction: column; gap: 10px;">
+                    <div class="vestiaire-item" style="display: flex; align-items: center; justify-content: space-between; background: #2c2c2c; padding: 10px; border-radius: 8px;">
+                        <span>Vestiaire</span>
+                        <select style="padding: 5px; background: #333; border: 1px solid #444; border-radius: 5px; color: #ffffff;">
+                            <option value="5.5">5.5%</option>
+                            <option value="10" selected>10%</option>
+                            <option value="20">20%</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+            <div class="save-section" style="display: flex; justify-content: center; margin-top: 30px;">
+                <button id="saveTaxSettingsBtn" class="save-btn">Enregistrer les paramètres</button>
+            </div>
+        </div>
+
+        <div class="content-section" id="configuration-tickets">
+            <a href="#" class="back-button" data-target="configuration-caisse-parametres">← Retour</a>
+            <h2>Paramètres des tickets</h2>
+            <div class="subtitle">Personnaliser vos tickets</div>
+            <div class="form-group" style="margin-bottom: 20px;">
+                <label>Nom de la discothèque</label>
+                <div class="tooltip-container">
+                    <input type="text" id="ticketDiscoName" readonly value="Non défini">
+                    <span class="tooltip">Synchroniser le nom de votre discothèque depuis la section Profil.</span>
+                </div>
+            </div>
+            <p>Contenu de la personnalisation des tickets...</p>
+        </div>
+
+        <div class="content-section" id="configuration-abonnement">
+            <a href="#" class="back-button" data-target="configuration">← Retour</a>
+            <h2>Abonnement et facturation</h2>
+            <div class="subtitle">Détails de facturation, mode de paiement</div>
+            <p>Contenu de la gestion de l'abonnement et facturation...</p>
+        </div>
+
+        <!-- NOUVEAU: Section intermédiaire pour le Kiosque -->
+        <!-- Cette section sert de sous-menu pour les paramètres du kiosque -->
+        <div class="content-section" id="configuration-kiosque-container">
+            <a href="#" class="back-button" data-target="configuration">← Retour</a>
+            <h2>Kiosque</h2>
+            <div class="subtitle">Gérer les paramètres du kiosque</div>
+            <div class="submenu-content">
+                <a href="#" class="submenu-item" data-target="configuration-kiosque">
+                    <span class="icon screen"></span>
+                    Alerte capacité max.
+                    <div class="description">Configurer les alertes de capacité maximale pour le kiosque</div>
+                </a>
+            </div>
+        </div>
+
+        <!-- NOUVEAU: Section détaillée pour la configuration des alertes du kiosque -->
+        <div class="content-section" id="configuration-kiosque">
+            <a href="#" class="back-button" data-target="configuration-kiosque-container">← Retour</a>
+            <h2>Kiosque</h2>
+            <div class="subtitle">Configuration des alertes de capacité pour le kiosque</div>
+            <div class="kiosque-section">
+                <h3>Alertes de Capacité Maximale</h3>
+                <div class="alerts-container">
+                    <div class="alert-column" id="alert-1">
+                        <h4>Alerte 1</h4>
+                        <div class="form-group">
+                            <label for="alert1-percentage">Pourcentage de capacité (%)</label>
+                            <input type="number" id="alert1-percentage" min="0" max="100" value="50">
+                        </div>
+                        <div class="form-group">
+                            <label for="alert1-color">Couleur de l'alerte</label>
+                            <input type="color" id="alert1-color" value="#00FF00">
+                        </div>
+                        <div class="toggle-group">
+                            <label for="alert1-enabled" data-tooltip="Activez pour appliquer la couleur et l'effet au kiosque">Activer l'alerte</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="alert1-enabled">
+                                <span class="toggle-slider"></span>
+                                <span class="notification"></span>
+                            </div>
+                        </div>
+                        <div class="alert-visual alert-1" id="alert1-visual" style="border-color: #00FF00; --alert-color: #00FF00;"></div>
+                    </div>
+                    <div class="alert-column" id="alert-2">
+                        <h4>Alerte 2</h4>
+                        <div class="form-group">
+                            <label for="alert2-percentage">Pourcentage de capacité (%)</label>
+                            <input type="number" id="alert2-percentage" min="0" max="100" value="75">
+                        </div>
+                        <div class="form-group">
+                            <label for="alert2-color">Couleur de l'alerte</label>
+                            <input type="color" id="alert2-color" value="#FFFF00">
+                        </div>
+                        <div class="toggle-group">
+                            <label for="alert2-enabled" data-tooltip="Activez pour appliquer la couleur et l'effet au kiosque">Activer l'alerte</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="alert2-enabled">
+                                <span class="toggle-slider"></span>
+                                <span class="notification"></span>
+                            </div>
+                        </div>
+                        <div class="alert-visual alert-2" id="alert2-visual" style="border-color: #FFFF00; --alert-color: #FFFF00;"></div>
+                    </div>
+                    <div class="alert-column" id="alert-3">
+                        <h4>Alerte 3</h4>
+                        <div class="form-group">
+                            <label for="alert3-percentage">Pourcentage de capacité (%)</label>
+                            <input type="number" id="alert3-percentage" min="0" max="100" value="90">
+                        </div>
+                        <div class="form-group">
+                            <label for="alert3-color">Couleur de l'alerte</label>
+                            <input type="color" id="alert3-color" value="#FF0000">
+                        </div>
+                        <div class="toggle-group">
+                            <label for="alert3-enabled" data-tooltip="Activez pour appliquer la couleur et l'effet au kiosque">Activer l'alerte</label>
+                            <div class="toggle-switch">
+                                <input type="checkbox" id="alert3-enabled">
+                                <span class="toggle-slider"></span>
+                                <span class="notification"></span>
+                            </div>
+                        </div>
+                        <div class="alert-visual alert-3" id="alert3-visual" style="border-color: #FF0000; --alert-color: #FF0000;"></div>
+                    </div>
+                </div>
+                <div class="save-section">
+                    <button id="saveKiosqueSettings">Enregistrer les paramètres</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Gestion des clics sur les éléments du menu
+        const menuItems = document.querySelectorAll('.menu-item');
+        const submenuItems = document.querySelectorAll('.submenu-item');
+        const backButtons = document.querySelectorAll('.back-button');
+        const contentSections = document.querySelectorAll('.content-section');
+        const sidebar = document.getElementById('sidebar');
+        const mainContent = document.getElementById('mainContent');
+        const toggleIcon = document.getElementById('toggleIcon');
+
+// On déclare la variable globale pour suivre le composant actif
+if (typeof window.activeManager === 'undefined') {
+    window.activeManager = null;
+}
+
+async function loadComponent(targetId, htmlFile, cssFile, jsFile) {
+    // ÉTAPE DE NETTOYAGE : si un manager est actif, on appelle sa fonction cleanup
+    console.log('[APP] Tentative de nettoyage du manager précédent...');
+    if (window.activeManager && typeof window.activeManager.cleanup === 'function') {
+        window.activeManager.cleanup();
+    }
+
+    const targetElement = document.getElementById(targetId);
+    console.log(`[APP] Demande de chargement pour : ${targetId}`);
+    if (!targetElement) return;
+
+    try {
+        const response = await fetch(htmlFile);
+        if (!response.ok) throw new Error(`Fichier HTML introuvable`);
+        targetElement.innerHTML = await response.text();
+
+        if (cssFile && !document.querySelector(`link[href="${cssFile}"]`)) {
+            const link = document.createElement('link');
+            link.rel = 'stylesheet';
+            link.href = cssFile;
+            document.head.appendChild(link);
+        }
+
+        const oldScript = document.getElementById(`${targetId}-script`);
+        if (oldScript) oldScript.remove();
+        
+        const script = document.createElement('script');
+        script.id = `${targetId}-script`;
+        script.src = jsFile;
+        document.body.appendChild(script);
+
+    } catch (error) {
+        targetElement.innerHTML = `<p style="color: red;">Erreur: ${error.message}</p>`;
+    }
+}
+
+        menuItems.forEach(item => {
+            item.addEventListener('click', (e) => {
+                e.preventDefault();
+                const target = item.getAttribute('data-target');
+                contentSections.forEach(section => section.classList.remove('active'));
+                document.getElementById(target).classList.add('active');
+                menuItems.forEach(i => i.classList.remove('active'));
+                item.classList.add('active');
+            });
+        });
+
+        submenuItems.forEach(item => {
+        item.addEventListener('click', (e) => {
+            e.preventDefault();
+            const target = item.getAttribute('data-target');
+
+            // Cas spécial pour notre nouveau composant
+            if (target === 'gestion-code-jour') {
+                loadComponent(
+                    'gestion-code-jour',
+                    '/gestion-codes-jour.html',
+                    '/css/gestion-codes-jour.css',
+                    '/js/gestion-codes-jour.js'
+                );
+            }
+
+            if (target === 'gestion-heures-creuses') {
+            loadComponent(
+                target,
+                '/gestion-horaires.html',
+                '/css/gestion-horaires.css',
+                '/js/gestion-horaires.js'
+            );
+        }
+            
+            contentSections.forEach(section => section.classList.remove('active'));
+            document.getElementById(target).classList.add('active');
+        });
+    });
+
+mainContent.addEventListener('click', function(e) {
+    const backButton = e.target.closest('.back-button');
+    if (backButton) {
+        e.preventDefault();
+        const target = backButton.getAttribute('data-target');
+        
+        if (target) {
+            contentSections.forEach(section => section.classList.remove('active'));
+            
+            const targetElement = document.getElementById(target);
+            if (targetElement) {
+                targetElement.classList.add('active');
+            } else {
+                console.error(`Element with ID '${target}' not found`);
+            }
+        }
+    }
+});
+
+        document.getElementById('gestion').classList.add('active');
+
+        function toggleSidebar() {
+            sidebar.classList.toggle('collapsed');
+            mainContent.classList.toggle('collapsed');
+            if (sidebar.classList.contains('collapsed')) {
+                toggleIcon.classList.remove('chevron-left');
+                toggleIcon.classList.add('chevron-right');
+            } else {
+                toggleIcon.classList.remove('chevron-right');
+                toggleIcon.classList.add('chevron-left');
+            }
+        }
+
+        const modal = document.getElementById('welcomeModal');
+        const dontShowAgainCheckbox = document.getElementById('dontShowAgain');
+
+        try {
+            if (!localStorage.getItem('dontShowWelcomeModal')) {
+                modal.style.display = 'flex';
+            }
+        } catch (e) {
+            console.error('Erreur avec localStorage :', e);
+        }
+
+        function closeModal() {
+            try {
+                if (dontShowAgainCheckbox.checked) {
+                    localStorage.setItem('dontShowWelcomeModal', 'true');
+                }
+            } catch (e) {
+                console.error('Erreur lors de l\'écriture dans localStorage :', e);
+            }
+            modal.style.display = 'none';
+            document.querySelector('.menu-item.active').focus();
+        }
+
+        modal.addEventListener('transitionend', () => {
+            if (modal.style.display === 'flex') {
+                modal.focus();
+            }
+        });
+
+        const confirmationModal = document.getElementById('confirmationModal');
+
+        function showConfirmationModal() {
+            confirmationModal.style.display = 'flex';
+        }
+
+        function closeConfirmationModal() {
+            confirmationModal.style.display = 'none';
+        }
+
+        const coverUpload = document.getElementById('coverUpload');
+        const coverImage = document.getElementById('coverImage');
+        const coverPlaceholder = document.getElementById('coverPlaceholder');
+        const removeCoverBtn = document.getElementById('removeCoverBtn');
+        const coverSection = document.getElementById('coverSection');
+
+        coverUpload.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    coverImage.src = event.target.result;
+                    coverImage.style.display = 'block';
+                    coverPlaceholder.style.display = 'none';
+                    removeCoverBtn.style.display = 'inline-block';
+                    coverSection.classList.remove('invalid');
+                };
+                reader.readAsDataURL(file);
+            }
+        });
+
+        removeCoverBtn.addEventListener('click', () => {
+            coverImage.src = '';
+            coverImage.style.display = 'none';
+            coverPlaceholder.style.display = 'flex';
+            removeCoverBtn.style.display = 'none';
+            coverUpload.value = '';
+        });
+
+        const profileForm = document.getElementById('profileForm');
+        const discoNameInput = document.getElementById('discoName');
+        const cityInput = document.getElementById('city');
+        const postalCodeInput = document.getElementById('postalCode');
+        const addressInput = document.getElementById('address');
+        const countryInput = document.getElementById('country');
+        const phoneInput = document.getElementById('phone');
+        const emailInput = document.getElementById('email');
+        const countryCodeInput = document.getElementById('countryCode');
+        const coverError = document.getElementById('coverError');
+        const discoNameError = document.getElementById('discoNameError');
+        const cityError = document.getElementById('cityError');
+        const postalCodeError = document.getElementById('postalCodeError');
+        const addressError = document.getElementById('addressError');
+        const phoneError = document.getElementById('phoneError');
+        const emailError = document.getElementById('emailError');
+
+        function validateForm() {
+            let isValid = true;
+
+            if (!coverImage.src || coverImage.src === '') {
+                coverSection.classList.add('invalid');
+                isValid = false;
+            } else {
+                coverSection.classList.remove('invalid');
+            }
+
+            if (!discoNameInput.value.trim()) {
+                discoNameInput.parentElement.classList.add('invalid');
+                isValid = false;
+            } else {
+                discoNameInput.parentElement.classList.remove('invalid');
+            }
+
+            if (!cityInput.value.trim()) {
+                cityInput.parentElement.classList.add('invalid');
+                isValid = false;
+            } else {
+                cityInput.parentElement.classList.remove('invalid');
+            }
+
+            if (!postalCodeInput.value.trim()) {
+                postalCodeInput.parentElement.classList.add('invalid');
+                isValid = false;
+            } else {
+                postalCodeInput.parentElement.classList.remove('invalid');
+            }
+
+            if (!addressInput.value.trim()) {
+                addressInput.parentElement.classList.add('invalid');
+                isValid = false;
+            } else {
+                addressInput.parentElement.classList.remove('invalid');
+            }
+
+            const phoneRegex = /^\d{9,}$/;
+            const fullPhone = countryCodeInput.value + phoneInput.value.replace(/\D/g, '');
+            if (!phoneRegex.test(phoneInput.value.replace(/\D/g, '')) || phoneInput.value.trim() === '') {
+                phoneInput.parentElement.parentElement.classList.add('invalid');
+                isValid = false;
+            } else {
+                phoneInput.parentElement.parentElement.classList.remove('invalid');
+            }
+
+            const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+            if (!emailRegex.test(emailInput.value.trim())) {
+                emailInput.parentElement.classList.add('invalid');
+                isValid = false;
+            } else {
+                emailInput.parentElement.classList.remove('invalid');
+            }
+
+            return isValid;
+        }
+
+        function resetForm() {
+            profileForm.reset();
+            coverImage.src = '';
+            coverImage.style.display = 'none';
+            coverPlaceholder.style.display = 'flex';
+            removeCoverBtn.style.display = 'none';
+            coverUpload.value = '';
+            coverSection.classList.remove('invalid');
+            const formGroups = document.querySelectorAll('.form-group');
+            formGroups.forEach(group => group.classList.remove('invalid'));
+        }
+
+        profileForm.addEventListener('submit', (e) => {
+            e.preventDefault();
+            if (validateForm()) {
+                showConfirmationModal();
+                resetForm();
+            }
+        });
+
+        const saveTaxSettingsBtn = document.getElementById('saveTaxSettingsBtn');
+        saveTaxSettingsBtn.addEventListener('click', () => {
+            showConfirmationModal();
+        });
+
+        const alert1Enabled = document.getElementById('alert1-enabled');
+        const alert1Visual = document.getElementById('alert1-visual');
+        const alert1Percentage = document.getElementById('alert1-percentage');
+        const alert1Color = document.getElementById('alert1-color');
+        const alert1Notification = alert1Enabled.nextElementSibling.nextElementSibling;
+
+        alert1Enabled.addEventListener('change', () => {
+            if (alert1Enabled.checked) {
+                alert1Visual.classList.add('active');
+                alert1Visual.style.borderColor = alert1Color.value;
+                alert1Visual.style.setProperty('--alert-color', alert1Color.value);
+                alert1Notification.textContent = `Alerte activée à ${alert1Percentage.value}% avec la couleur ${alert1Color.value}.`;
+                alert1Notification.classList.add('show');
+                setTimeout(() => alert1Notification.classList.remove('show'), 2000);
+            } else {
+                alert1Visual.classList.remove('active');
+                alert1Notification.textContent = 'Alerte désactivée.';
+                alert1Notification.classList.add('show');
+                setTimeout(() => alert1Notification.classList.remove('show'), 2000);
+            }
+        });
+
+        alert1Percentage.addEventListener('input', () => {
+            if (alert1Enabled.checked) {
+                alert1Notification.textContent = `Alerte ajustée à ${alert1Percentage.value}% avec la couleur ${alert1Color.value}.`;
+                alert1Notification.classList.add('show');
+                setTimeout(() => alert1Notification.classList.remove('show'), 2000);
+            }
+        });
+
+        alert1Color.addEventListener('input', () => {
+            alert1Visual.style.borderColor = alert1Color.value;
+            alert1Visual.style.setProperty('--alert-color', alert1Color.value);
+            if (alert1Enabled.checked) {
+                alert1Notification.textContent = `Couleur modifiée à ${alert1Color.value} pour ${alert1Percentage.value}%.`;
+                alert1Notification.classList.add('show');
+                setTimeout(() => alert1Notification.classList.remove('show'), 2000);
+            }
+        });
+
+        const alert2Enabled = document.getElementById('alert2-enabled');
+        const alert2Visual = document.getElementById('alert2-visual');
+        const alert2Percentage = document.getElementById('alert2-percentage');
+        const alert2Color = document.getElementById('alert2-color');
+        const alert2Notification = alert2Enabled.nextElementSibling.nextElementSibling;
+
+        alert2Enabled.addEventListener('change', () => {
+            if (alert2Enabled.checked) {
+                alert2Visual.classList.add('active');
+                alert2Visual.style.borderColor = alert2Color.value;
+                alert2Visual.style.setProperty('--alert-color', alert2Color.value);
+                alert2Notification.textContent = `Alerte activée à ${alert2Percentage.value}% avec la couleur ${alert2Color.value}.`;
+                alert2Notification.classList.add('show');
+                setTimeout(() => alert2Notification.classList.remove('show'), 2000);
+            } else {
+                alert2Visual.classList.remove('active');
+                alert2Notification.textContent = 'Alerte désactivée.';
+                alert2Notification.classList.add('show');
+                setTimeout(() => alert2Notification.classList.remove('show'), 2000);
+            }
+        });
+
+        alert2Percentage.addEventListener('input', () => {
+            if (alert2Enabled.checked) {
+                alert2Notification.textContent = `Alerte ajustée à ${alert2Percentage.value}% avec la couleur ${alert2Color.value}.`;
+                alert2Notification.classList.add('show');
+                setTimeout(() => alert2Notification.classList.remove('show'), 2000);
+            }
+        });
+
+        alert2Color.addEventListener('input', () => {
+            alert2Visual.style.borderColor = alert2Color.value;
+            alert2Visual.style.setProperty('--alert-color', alert2Color.value);
+            if (alert2Enabled.checked) {
+                alert2Notification.textContent = `Couleur modifiée à ${alert2Color.value} pour ${alert2Percentage.value}%.`;
+                alert2Notification.classList.add('show');
+                setTimeout(() => alert2Notification.classList.remove('show'), 2000);
+            }
+        });
+
+        const alert3Enabled = document.getElementById('alert3-enabled');
+        const alert3Visual = document.getElementById('alert3-visual');
+        const alert3Percentage = document.getElementById('alert3-percentage');
+        const alert3Color = document.getElementById('alert3-color');
+        const alert3Notification = alert3Enabled.nextElementSibling.nextElementSibling;
+
+        alert3Enabled.addEventListener('change', () => {
+            if (alert3Enabled.checked) {
+                alert3Visual.classList.add('active');
+                alert3Visual.style.borderColor = alert3Color.value;
+                alert3Visual.style.setProperty('--alert-color', alert3Color.value);
+                alert3Notification.textContent = `Alerte activée à ${alert3Percentage.value}% avec la couleur ${alert3Color.value}.`;
+                alert3Notification.classList.add('show');
+                setTimeout(() => alert3Notification.classList.remove('show'), 2000);
+            } else {
+                alert3Visual.classList.remove('active');
+                alert3Notification.textContent = 'Alerte désactivée.';
+                alert3Notification.classList.add('show');
+                setTimeout(() => alert3Notification.classList.remove('show'), 2000);
+            }
+        });
+
+        alert3Percentage.addEventListener('input', () => {
+            if (alert3Enabled.checked) {
+                alert3Notification.textContent = `Alerte ajustée à ${alert3Percentage.value}% avec la couleur ${alert3Color.value}.`;
+                alert3Notification.classList.add('show');
+                setTimeout(() => alert3Notification.classList.remove('show'), 2000);
+            }
+        });
+
+        alert3Color.addEventListener('input', () => {
+            alert3Visual.style.borderColor = alert3Color.value;
+            alert3Visual.style.setProperty('--alert-color', alert3Color.value);
+            if (alert3Enabled.checked) {
+                alert3Notification.textContent = `Couleur modifiée à ${alert3Color.value} pour ${alert3Percentage.value}%.`;
+                alert3Notification.classList.add('show');
+                setTimeout(() => alert3Notification.classList.remove('show'), 2000);
+            }
+        });
+
+        const saveKiosqueSettings = document.getElementById('saveKiosqueSettings');
+        saveKiosqueSettings.addEventListener('click', () => {
+            showConfirmationModal();
+        });
+    </script>

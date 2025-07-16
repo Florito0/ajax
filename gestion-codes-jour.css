@@ -1,0 +1,224 @@
+* {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Roboto', sans-serif;
+            /* Réinitialise les marges et paddings, utilise box-sizing: border-box pour inclure padding/border dans les dimensions, et applique la police Roboto */
+        }
+        
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            padding: 20px;
+            min-height: 100vh;
+            /* Définit un fond sombre, texte blanc, padding global, et hauteur minimale couvrant la fenêtre */
+        }
+
+        .container {
+            background-color: #1e1e1e;
+            border-radius: 12px;
+            max-width: 1200px;
+            margin: 0 auto;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            /* Conteneur principal avec fond légèrement plus clair, coins arrondis, largeur max, centré, et ombre pour effet 3D */
+        }
+
+        .header {
+            background-color: #2c2c2c;
+            padding: 20px;
+            text-align: center;
+            border-bottom: 1px solid #333;
+            /* En-tête avec fond distinct, padding, texte centré, et bordure inférieure subtile */
+        }
+
+        .year-month-nav {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: linear-gradient(135deg, #1c2526 0%, #2a3b4c 100%);
+            overflow-x: auto;
+            position: relative;
+            /* Barre de navigation pour année/mois avec flexbox pour alignement, dégradé de fond, défilement horizontal si nécessaire */
+        }
+
+        .year-select-btn {
+            padding: 5px 15px;
+            background: #444;
+            border: 1px solid #333;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            font-size: 14px;
+            position: relative;
+            /* Bouton de sélection d'année avec style sombre, bordure, coins arrondis, curseur cliquable, et transitions fluides */
+        }
+
+        .year-select-btn:hover {
+            background: #555;
+            box-shadow: 0 0 10px #9733EE, 0 0 5px #00D4FF;
+            /* Effet au survol : fond plus clair et ombres colorées pour un style futuriste */
+        }
+
+        .year-select-btn:after {
+            content: ' ▼';
+            font-size: 12px;
+            margin-left: 5px;
+            /* Ajoute une flèche vers le bas après le texte du bouton pour indiquer un menu déroulant */
+        }
+
+        .year-dropdown {
+            display: none;
+            position: absolute;
+            background: #2c2c2c;
+            border: 1px solid #333;
+            border-radius: 4px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            min-width: 100px;
+            top: 100%;
+            left: 0;
+            /* Menu déroulant pour sélection d'année, caché par défaut, positionné absolument sous le bouton */
+        }
+
+        .year-option {
+            padding: 8px;
+            color: white;
+            cursor: pointer;
+            font-size: 14px;
+            transition: background-color 0.2s;
+            /* Options du menu déroulant avec padding, texte blanc, curseur cliquable, et transition au survol */
+        }
+
+        .year-option:hover {
+            background: #444;
+            /* Fond plus clair au survol des options pour feedback visuel */
+        }
+
+        .month-btn {
+            padding: 5px 10px;
+            background: #444;
+            border: 1px solid #333;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            white-space: nowrap;
+            font-size: 14px;
+            /* Boutons de sélection de mois avec style sombre, bordure, et transitions fluides */
+        }
+
+        .month-btn:hover {
+            background: #555;
+            box-shadow: 0 0 10px #9733EE, 0 0 5px #00D4FF;
+            /* Effet au survol : fond plus clair et ombres colorées */
+        }
+
+        .month-btn.active {
+            background: linear-gradient(to right, #9733EE, #DA22FF);
+            /* Style pour le mois actif avec dégradé violet/rose */
+        }
+
+        .calendar {
+            padding: 20px;
+            /* Conteneur du calendrier avec padding pour espacement interne */
+        }
+
+        .week-row {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 5px;
+            margin-bottom: 5px;
+            /* Ligne de semaine en grille avec 7 colonnes égales, espacement entre cellules, et marge inférieure */
+        }
+
+        .day-cell {
+            padding: 15px;
+            background: #2c2c2c;
+            border-radius: 8px;
+            text-align: center;
+            min-height: 80px;
+            /* Cellule de jour avec padding, fond sombre, coins arrondis, texte centré, et hauteur minimale */
+        }
+
+        .day-cell:hover {
+            box-shadow: 0 0 5px #00D4FF;
+            /* Ombre cyan au survol des cellules pour feedback visuel */
+        }
+
+        .day-cell.today {
+            border: 2px solid #FF00FF;
+            /* Bordure rose pour mettre en évidence le jour actuel */
+        }
+
+        .day-cell input {
+            width: 100%;
+            padding: 5px;
+            background: #333;
+            border: 1px solid #444;
+            color: white;
+            border-radius: 4px;
+            text-align: center;
+            margin-top: 5px;
+            /* Champs de saisie pour les codes avec style sombre, bordure subtile, texte centré, et marge */
+        }
+
+        .day-cell input:focus {
+            background: #444;
+            box-shadow: 0 0 5px #00D4FF;
+            outline: none;
+            /* Style au focus : fond plus clair, ombre cyan, et suppression de la bordure par défaut */
+        }
+
+        .controls {
+            padding: 20px;
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            align-items: center;
+            /* Conteneur des boutons de contrôle avec flexbox pour centrage et espacement */
+        }
+
+        .generate-label {
+            font-size: 16px;
+            margin-right: 10px;
+            cursor: default;
+            /* Étiquette pour génération de codes, non cliquable */
+        }
+
+        .generate-option {
+            padding: 8px 15px;
+            background: #444;
+            border: 1px solid #333;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            margin-left: 5px;
+            /* Boutons pour génération de codes (mois/année) avec style sombre et transitions */
+        }
+
+        .generate-option:hover {
+            background: #555;
+            box-shadow: 0 0 10px #9733EE, 0 0 5px #00D4FF;
+            /* Effet au survol : fond plus clair et ombres colorées */
+        }
+
+        .generate-option.active {
+            background: linear-gradient(to right, #9733EE, #DA22FF);
+            /* Style pour le bouton de génération actif avec dégradé violet/rose */
+        }
+
+        .export-btn {
+            padding: 10px 20px;
+            border: 1px solid #333;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: box-shadow 0.3s;
+            background: #444;
+            /* Bouton d'exportation PDF avec style sombre et transition pour l'ombre */
+        }
+
+        .export-btn:hover {
+            box-shadow: 0 0 10px #9733EE, 0 0 5px #00D4FF;
+            /* Ombre colorée au survol du bouton d'exportation */
+        }

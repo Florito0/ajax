@@ -1,0 +1,556 @@
+/* === STYLES POUR LA GESTION DE CAPACITÉ === */
+
+/* Conteneur principal adapté au style des autres sections */
+.capacity-container {
+  background: transparent;
+  padding: 0;
+  max-width: 100%;
+  margin: 0 auto;
+}
+
+/* En-tête de section - Titre et sous-titre centrés */
+.section-header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.section-header h2 {
+  color: var(--text-color, #ffffff);
+  margin-bottom: 10px;
+  font-size: 24px;
+  font-weight: 700;
+  text-align: center;
+}
+
+.section-subtitle {
+  color: var(--text-secondary, #b3b3b3);
+  margin-bottom: 30px;
+  font-size: 16px;
+  text-align: center;
+}
+
+/* Conteneur principal avec style cohérent */
+#mainInterface, #autoResetInterface {
+  background-color: var(--surface-color, #1e1e1e);
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  padding: 20px;
+  margin: 0 auto;
+}
+
+/* Section d'affichage de la capacité - Taille réduite */
+.capacity-display {
+  padding: 20px;
+  text-align: center;
+  background: transparent;
+}
+
+/* Compteur de capacité - Taille réduite pour cohérence */
+.current-capacity {
+  font-size: clamp(32px, 8vw, 48px); /* Réduit de 48-72px à 32-48px */
+  font-weight: 700;
+  margin: 15px 0;
+  color: #fff;
+  text-shadow: 0 2px 10px rgba(151, 51, 238, 0.3);
+}
+
+/* Barre de progression - Taille ajustée */
+.capacity-bar {
+  width: 90%;
+  max-width: 400px; /* Réduit de 500px */
+  height: 20px; /* Réduit de 24px */
+  background-color: #333;
+  border-radius: 10px;
+  margin: 15px auto;
+  overflow: hidden;
+  border: 1px solid #444;
+}
+
+/* Remplissage de la barre */
+.capacity-fill {
+  height: 100%;
+  transition: width 0.3s ease, background 0.3s ease;
+  background: linear-gradient(to right, #9733EE, #DA22FF);
+}
+
+/* Texte de capacité */
+.capacity-text {
+  font-size: clamp(14px, 3vw, 18px); /* Réduit de 16-20px */
+  font-weight: 600;
+  margin-top: 10px;
+  color: #b3b3b3;
+}
+
+.capacity-text .max-capacity {
+  color: #ff4444;
+  font-weight: 700;
+}
+
+/* Section des contrôles - Espacement réduit */
+.capacity-controls {
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* Réduit de 25px */
+  background-color: transparent;
+}
+
+/* Groupe d'entrée - Style cohérent avec horaires */
+.input-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 15px; /* Réduit de 20px */
+  background-color: #2c2c2c;
+  border-radius: 8px;
+  border-left: 3px solid #9733EE;
+}
+
+/* Labels avec icônes de même couleur que le texte */
+.input-group label {
+  font-size: clamp(14px, 3vw, 16px); /* Réduit de 16-18px */
+  font-weight: 600;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #ffffff;
+  min-width: 180px; /* Réduit de 200px */
+}
+
+.input-group label i {
+  color: #ffffff; /* Même couleur que le texte */
+  font-size: 1.1em;
+}
+
+/* Conteneur pour les inputs */
+.input-group .input-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Champs de saisie - Taille réduite */
+.input-group input {
+  width: 100px; /* Réduit de 120px */
+  padding: 8px; /* Réduit de 12px */
+  background-color: #333;
+  border: 1px solid #444;
+  color: white;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 14px; /* Réduit de 16px */
+  font-weight: 600;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: #9733EE;
+  box-shadow: 0 0 0 2px rgba(151, 51, 238, 0.2);
+}
+
+.input-group input[readonly] {
+  background-color: #2c2c2c;
+  border-color: #555;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* Groupe de contrôle */
+.control-group {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 15px; /* Réduit de 20px */
+  background-color: #2c2c2c;
+  border-radius: 8px;
+  border-left: 3px solid #DA22FF;
+}
+
+/* Labels du groupe de contrôle */
+.control-group label {
+  font-size: clamp(14px, 3vw, 16px); /* Réduit de 16-18px */
+  color: #ffffff;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 180px; /* Réduit de 200px */
+}
+
+.control-group label i {
+  color: #ffffff; /* Même couleur que le texte */
+  font-size: 1.1em;
+}
+
+/* Boutons de contrôle - Taille réduite */
+.control-buttons {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.control-btn {
+  width: 40px; /* Réduit de 50px */
+  height: 40px; /* Réduit de 50px */
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, #9733EE, #DA22FF);
+  color: #ffffff;
+  font-size: 20px; /* Réduit de 24px */
+  font-weight: 700;
+  cursor: pointer;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  box-shadow: 0 4px 15px rgba(151, 51, 238, 0.4);
+  transition: all 0.2s ease;
+}
+
+.control-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(151, 51, 238, 0.6);
+  background: linear-gradient(135deg, #a144ff, #e055ff);
+}
+
+.control-btn:active {
+  transform: translateY(0);
+  animation: pulse 0.2s ease;
+}
+
+/* Conteneur pour les boutons de réinitialisation */
+.reset-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+  margin-top: 5px;
+  flex-wrap: wrap;
+}
+
+/* Boutons d'action avec style cohérent */
+.update-btn, .reset-btn, .auto-reset-btn, .back-btn {
+  padding: 10px 16px; /* Réduit de 12px 20px */
+  color: #ffffff;
+  border: none;
+  border-radius: 6px;
+  font-size: clamp(13px, 3vw, 15px); /* Réduit de 14-16px */
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  position: relative;
+  min-width: 120px; /* Réduit de 140px */
+}
+
+/* Bouton "Appliquer" */
+.update-btn {
+  background: linear-gradient(135deg, #9733EE, #DA22FF);
+  box-shadow: 0 4px 15px rgba(151, 51, 238, 0.4);
+}
+
+/* Boutons de réinitialisation - Couleurs plus foncées */
+.reset-btn {
+  background: linear-gradient(135deg, #3a3a3a, #4a4a4a); /* Plus foncé */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.auto-reset-btn {
+  background: linear-gradient(135deg, #2d2d2d, #3d3d3d); /* Plus foncé */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.back-btn {
+  background: linear-gradient(135deg, #333333, #444444); /* Plus foncé */
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+  width: 100%;
+  margin-top: 15px;
+}
+
+/* Effets au survol */
+.update-btn:hover {
+  background: linear-gradient(135deg, #a144ff, #e055ff);
+  box-shadow: 0 6px 20px rgba(151, 51, 238, 0.6);
+  transform: translateY(-2px);
+}
+
+.reset-btn:hover {
+  background: linear-gradient(135deg, #4a4a4a, #5a5a5a);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+.auto-reset-btn:hover {
+  background: linear-gradient(135deg, #3d3d3d, #4d4d4d);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+.back-btn:hover {
+  background: linear-gradient(135deg, #444444, #555555);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+  transform: translateY(-2px);
+}
+
+/* Couleur des icônes dans les boutons */
+.update-btn i { color: #ffffff; }
+.reset-btn i { color: #ff6b6b; }
+.auto-reset-btn i { color: #4ecdc4; }
+.back-btn i { color: #ffffff; }
+
+/* Modal - Style adapté */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 10000;
+  backdrop-filter: blur(5px);
+}
+
+.modal {
+  background: linear-gradient(135deg, #2c2c2c, #3c3c3c);
+  border-radius: 10px;
+  padding: 25px;
+  width: 90%;
+  max-width: 400px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.5);
+  border: 1px solid #444;
+}
+
+.modal p {
+  font-size: clamp(14px, 4vw, 16px);
+  margin-bottom: 20px;
+  color: #e0e0e0;
+  line-height: 1.5;
+}
+
+.modal-buttons {
+  display: flex;
+  justify-content: center;
+  gap: 12px;
+}
+
+.modal-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 6px;
+  font-size: clamp(13px, 4vw, 15px);
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 90px;
+}
+
+.modal-btn.yes {
+  background: linear-gradient(to right, #ff4444, #ff7777);
+  color: white;
+}
+
+.modal-btn.no {
+  background: linear-gradient(to right, #666, #999);
+  color: white;
+}
+
+.modal-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+}
+
+/* Notifications */
+.notification {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  padding: 12px 18px;
+  border-radius: 6px;
+  font-weight: 500;
+  font-size: 14px;
+  z-index: 2000;
+  transform: translateX(400px);
+  transition: transform 0.3s ease;
+  max-width: 280px;
+  word-wrap: break-word;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+}
+
+.notification.show {
+  transform: translateX(0);
+}
+
+.notification.success {
+  background: linear-gradient(135deg, #28a745, #20c997);
+  color: white;
+}
+
+.notification.error {
+  background: linear-gradient(135deg, #dc3545, #c82333);
+  color: white;
+}
+
+.notification.warning {
+  background: linear-gradient(135deg, #ffc107, #fd7e14);
+  color: white;
+}
+
+/* Section de planification - Style cohérent */
+.schedule-section {
+  padding: 15px;
+}
+
+.schedule-actions {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Jours de planification */
+.day-schedule {
+  margin-bottom: 8px;
+}
+
+.day-header {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  background-color: #2c2c2c;
+  border-radius: 6px;
+  transition: background-color 0.2s ease;
+}
+
+.day-header.active {
+  background-color: #333;
+  border-left: 3px solid #9733EE;
+}
+
+.toggle {
+  margin-right: 12px;
+  cursor: pointer;
+}
+
+.day-name {
+  font-size: 16px;
+  font-weight: 500;
+  flex: 1;
+  color: #b3b3b3;
+}
+
+.status {
+  font-size: 13px;
+  margin-right: 12px;
+}
+
+.status.active {
+  color: #33cc33;
+}
+
+.status.inactive {
+  color: #b3b3b3;
+}
+
+.time-input {
+  padding: 6px;
+  background-color: #333;
+  border: none;
+  color: white;
+  border-radius: 6px;
+  width: 90px;
+  text-align: center;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+  transition: box-shadow 0.2s ease;
+  font-size: 14px;
+}
+
+.time-input:disabled {
+  background-color: #2c2c2c;
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.time-input:focus {
+  outline: none;
+  box-shadow: 0 2px 8px rgba(187, 134, 252, 0.5);
+}
+
+/* Animation pulse */
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .capacity-container {
+    padding: 10px;
+  }
+  
+  .current-capacity {
+    font-size: clamp(28px, 10vw, 40px);
+  }
+  
+  .capacity-bar {
+    width: 95%;
+    max-width: 350px;
+  }
+}
+
+@media (max-width: 480px) {
+  .capacity-controls {
+    padding: 15px 10px;
+    gap: 15px;
+  }
+  
+  .input-group, .control-group {
+    flex-direction: column;
+    align-items: flex-start;
+    padding: 12px;
+  }
+
+  .input-group label, .control-group label {
+    min-width: auto;
+    width: 100%;
+    margin-bottom: 8px;
+  }
+
+  .input-group .input-wrapper {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .control-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .reset-buttons {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .reset-btn, .auto-reset-btn {
+    width: 100%;
+  }
+
+  .notification {
+    right: 10px;
+    left: 10px;
+    max-width: none;
+  }
+}

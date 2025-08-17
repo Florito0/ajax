@@ -1,0 +1,305 @@
+const pool = require("../db");
+
+// Récupère la discothèque du user; si aucune, en crée une par défaut
+async function getOrCreateDiscothequeId(userId, clientOrPool = pool) {
+  const client = clientOrPool.query ? clientOrPool : pool;
+  const { rows } = await client.query(
+    `SELECT id FROM public.discotheques
+      WHERE user_id = $1
+      ORDER BY id
+      LIMIT 1`,
+    [userId]
+  );
+  if (rows[0]) return rows[0].id;
+  const created = await client.query(
+    `INSERT INTO public.discotheques (user_id, nom)
+     VALUES ($1, $2)
+     RETURNING id`,
+    [userId, "Mon établissement"]
+  );
+  return created.rows[0].id;
+}
+
+// Récupère ou crée l'enregistrement de capacité pour une discothèque
+async function getOrCreateCapacite(discothequeId, userId, clientOrPool = pool) {
+  const client = clientOrPool.query ? clientOrPool : pool;
+  
+  // Vérifier si l'enregistrement existe
+  const { rows } = await client.query(
+    `SELECT id, max, current, daily_peak, reset_schedule, last_reset, is_active
+     FROM public.capacite
+     WHERE discotheque_id = $1 AND user_id = $2`,
+    [discothequeId, userId]
+  );
+  
+  if (rows[0]) return rows[0];
+  
+  // Créer l'enregistrement s'il n'existe pas
+  const created = await client.query(
+    `INSERT INTO public.capacite (discotheque_id, user_id, max, current, daily_peak)
+     VALUES ($1, $2, $3, $4, $5)
+     RETURNING id, max, current, daily_peak, reset_schedule, last_reset, is_active`,
+    [discothequeId, userId, 100, 0, 0]
+  );
+  
+  return created.rows[0];
+}
+
+// Fonction helper pour mettre à jour le pic quotidien
+async function updateDailyPeak(discothequeId, currentCount, client) {
+  await client.query(
+    `UPDATE public.capacite 
+     SET daily_peak = GREATEST(daily_peak, $1)
+     WHERE discotheque_id = $2`,
+    [currentCount, discothequeId]
+  );
+}
+
+// GET /api/capacite
+const getCapacite = async (req, res) => {
+  try {
+    const userId = req?.user?.id;
+    if (!userId) return res.status(401).json({ message: "Non authentifié" });
+    
+    const client = await pool.connect();
+    try {
+      await client.query(`SET app.user_id = '${userId}'`);
+      const discothequeId = await getOrCreateDiscothequeId(userId, client);
+      const capaciteData = await getOrCreateCapacite(discothequeId, userId, client);
+      
+      // Retourner les données dans le format attendu par le frontend
+      res.json({
+        max_capacity: capaciteData.max,
+        current_count: capaciteData.current,
+        reset_schedule: capaciteData.reset_schedule || {},
+        daily_peak: capaciteData.daily_peak,
+        last_reset: capaciteData.last_reset,
+        is_active: capaciteData.is_active
+      });
+    } finally {
+      client.release();
+    }
+  } catch (error) {
+    console.error("❌ Erreur GET capacite:", error);
+    res.status(500).json({ message: "Erreur serveur lors de la récupération de la capacité" });
+  }
+};
+
+// POST /api/capacite - Sauvegarde max_capacity et reset_schedule
+const saveCapacite = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const userId = req?.user?.id;
+    if (!userId) return res.status(401).json({ message: "Non authentifié" });
+    
+    await client.query(`SET app.user_id = '${userId}'`);
+    const discothequeId = await getOrCreateDiscothequeId(userId, client);
+    
+    const { max_capacity, reset_schedule } = req.body;
+    
+    await client.query("BEGIN");
+    
+    // Créer ou mettre à jour l'enregistrement de capacité
+    await client.query(
+      `INSERT INTO public.capacite (discotheque_id, user_id, max, reset_schedule)
+       VALUES ($1, $2, $3, $4)
+       ON CONFLICT (discotheque_id)
+       DO UPDATE SET 
+         max = EXCLUDED.max,
+         reset_schedule = EXCLUDED.reset_schedule`,
+      [discothequeId, userId, max_capacity, JSON.stringify(reset_schedule)]
+    );
+    
+    await client.query("COMMIT");
+    res.json({ success: true });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("❌ Erreur POST capacite:", error);
+    res.status(500).json({ message: "Erreur serveur lors de la sauvegarde de la capacité" });
+  } finally {
+    client.release();
+  }
+};
+
+// PATCH /api/capacite/count - Mise à jour du current_count
+const updateCount = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const userId = req?.user?.id;
+    if (!userId) return res.status(401).json({ message: "Non authentifié" });
+    
+    await client.query(`SET app.user_id = '${userId}'`);
+    const discothequeId = await getOrCreateDiscothequeId(userId, client);
+    
+    const { change } = req.body;
+    
+    await client.query("BEGIN");
+    
+    // Récupère les valeurs actuelles
+    const capaciteData = await getOrCreateCapacite(discothequeId, userId, client);
+    const curr = capaciteData.current || 0;
+    const maxCap = capaciteData.max || 100;
+    
+    // Calcul avec limites
+    const newCount = Math.max(0, Math.min(maxCap, curr + change));
+    
+    // Update avec mise à jour du pic
+    const { rows } = await client.query(
+      `UPDATE public.capacite
+       SET current = $1, daily_peak = GREATEST(daily_peak, $1)
+       WHERE discotheque_id = $2 AND user_id = $3
+       RETURNING current, daily_peak`,
+      [newCount, discothequeId, userId]
+    );
+    
+    await client.query("COMMIT");
+    
+    res.json({ 
+      current_count: rows[0].current,
+      daily_peak: rows[0].daily_peak
+    });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("❌ Erreur PATCH count détaillée:", error.message, error.stack);
+    res.status(500).json({ message: "Erreur serveur lors de la mise à jour du compteur" });
+  } finally {
+    client.release();
+  }
+};
+
+// PATCH /api/capacite/reset - Réinitialisation avec sauvegarde des statistiques
+const resetCount = async (req, res) => {
+  const client = await pool.connect();
+  try {
+    const userId = req?.user?.id;
+    if (!userId) return res.status(401).json({ message: "Non authentifié" });
+    
+    await client.query(`SET app.user_id = '${userId}'`);
+    const discothequeId = await getOrCreateDiscothequeId(userId, client);
+    
+    await client.query("BEGIN");
+    
+    // Récupérer les données actuelles pour les statistiques
+    const capaciteData = await getOrCreateCapacite(discothequeId, userId, client);
+    const { current, daily_peak, max } = capaciteData;
+    
+    // Sauvegarder dans les statistiques si il y a eu de l'activité
+    if (daily_peak > 0) {
+      await client.query(
+        `INSERT INTO public.statistiques (
+          discotheque_id, user_id, date_stat, total_entrees, 
+          taux_occupation, pic_frequentation
+        ) VALUES ($1, $2, CURRENT_DATE, $3, $4, $5)
+        ON CONFLICT (discotheque_id, date_stat) 
+        DO UPDATE SET 
+          total_entrees = GREATEST(statistiques.total_entrees, EXCLUDED.total_entrees),
+          taux_occupation = GREATEST(statistiques.taux_occupation, EXCLUDED.taux_occupation),
+          pic_frequentation = GREATEST(statistiques.pic_frequentation, EXCLUDED.pic_frequentation)`,
+        [
+          discothequeId, 
+          userId,
+          current, 
+          max > 0 ? (daily_peak / max * 100).toFixed(2) : 0,
+          daily_peak
+        ]
+      );
+    }
+    
+    // Reset de la capacité
+    await client.query(
+      `UPDATE public.capacite
+       SET current = 0, daily_peak = 0, last_reset = CURRENT_TIMESTAMP
+       WHERE discotheque_id = $1 AND user_id = $2`,
+      [discothequeId, userId]
+    );
+    
+    await client.query("COMMIT");
+    res.json({ success: true, message: "Compteur réinitialisé avec succès" });
+  } catch (error) {
+    await client.query("ROLLBACK");
+    console.error("❌ Erreur PATCH reset:", error);
+    res.status(500).json({ message: "Erreur serveur lors de la réinitialisation du compteur" });
+  } finally {
+    client.release();
+  }
+};
+
+// BONUS: Fonction pour vérifier les resets automatiques (à appeler via cron ou scheduler)
+const checkAutoResets = async () => {
+  const client = await pool.connect();
+  try {
+    const now = new Date();
+    const currentDay = now.toLocaleDateString('fr-FR', { weekday: 'long' }); // 'lundi', 'mardi', etc.
+    const currentTime = now.toTimeString().slice(0, 5); // 'HH:MM'
+    
+    // Trouver les discothèques qui ont un reset programmé maintenant
+    const { rows } = await client.query(
+      `SELECT discotheque_id, user_id
+       FROM public.capacite 
+       WHERE is_active = true 
+       AND reset_schedule->$1 = $2`,
+      [currentDay, currentTime]
+    );
+    
+    for (const row of rows) {
+      try {
+        await client.query(`SET app.user_id = '${row.user_id}'`);
+        
+        // Exécuter le reset automatique
+        const capaciteData = await getOrCreateCapacite(row.discotheque_id, row.user_id, client);
+        const { current, daily_peak, max } = capaciteData;
+        
+        await client.query("BEGIN");
+        
+        // Sauvegarder les stats si nécessaire
+        if (daily_peak > 0) {
+          await client.query(
+            `INSERT INTO public.statistiques (
+              discotheque_id, user_id, date_stat, total_entrees, 
+              taux_occupation, pic_frequentation
+            ) VALUES ($1, $2, CURRENT_DATE, $3, $4, $5)
+            ON CONFLICT (discotheque_id, date_stat) 
+            DO UPDATE SET 
+              total_entrees = GREATEST(statistiques.total_entrees, EXCLUDED.total_entrees),
+              taux_occupation = GREATEST(statistiques.taux_occupation, EXCLUDED.taux_occupation),
+              pic_frequentation = GREATEST(statistiques.pic_frequentation, EXCLUDED.pic_frequentation)`,
+            [
+              row.discotheque_id, 
+              row.user_id,
+              current, 
+              max > 0 ? (daily_peak / max * 100).toFixed(2) : 0,
+              daily_peak
+            ]
+          );
+        }
+        
+        // Reset automatique
+        await client.query(
+          `UPDATE public.capacite
+           SET current = 0, daily_peak = 0, last_reset = CURRENT_TIMESTAMP
+           WHERE discotheque_id = $1 AND user_id = $2`,
+          [row.discotheque_id, row.user_id]
+        );
+        
+        await client.query("COMMIT");
+        console.log(`✅ Auto-reset effectué pour discothèque ${row.discotheque_id}`);
+        
+      } catch (error) {
+        await client.query("ROLLBACK");
+        console.error(`❌ Erreur auto-reset pour discothèque ${row.discotheque_id}:`, error);
+      }
+    }
+  } catch (error) {
+    console.error("❌ Erreur checkAutoResets:", error);
+  } finally {
+    client.release();
+  }
+};
+
+module.exports = { 
+  getCapacite, 
+  saveCapacite, 
+  updateCount, 
+  resetCount,
+  checkAutoResets // Export pour utilisation avec un scheduler
+};

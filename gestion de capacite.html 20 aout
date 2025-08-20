@@ -1,0 +1,69 @@
+<div class="container" id="capaciteMainInterface">
+  <div class="header">
+    <h1>GESTION CAPACITÉ</h1>
+    <div class="subtitle">Affichage dynamique de la capacité actuelle</div>
+  </div>
+
+  <div class="capacity-display">
+    <div class="current-capacity" id="current-capacity-display">0</div>
+    <div class="capacity-bar">
+      <div class="capacity-fill" id="capacity-fill" style="width: 0%"></div>
+    </div>
+    <div class="capacity-text" id="capacity-text-display">
+      0 / <span class="max-capacity">0</span>
+    </div>
+  </div>
+
+  <div class="capacity-controls">
+    <div class="input-group max-capacity">
+      <label><i class="fas fa-tachometer-alt"></i> Capacité Maximum :</label>
+      <div class="input-wrapper">
+        <button class="update-btn" id="update-capacity-btn" data-tooltip="Appliquer la nouvelle capacité maximale">
+          <i class="fas fa-check"></i> Appliquer
+        </button>
+        <input type="number" id="max-capacity-input" min="0" value="100">
+      </div>
+    </div>
+    <div class="input-group current-count">
+      <label><i class="fas fa-users"></i> Nombre de Clients Actuel :</label>
+      <div class="input-wrapper">
+        <input type="number" id="current-count-input" min="0" value="0" readonly>
+      </div>
+    </div>
+    <div class="control-group">
+      <label><i class="fas fa-sliders-h"></i> Ajustement :</label>
+      <div class="control-buttons">
+        <button class="control-btn" data-change="-1" aria-label="Décrémenter le nombre de clients">−</button>
+        <button class="control-btn" data-change="1" aria-label="Incrémenter le nombre de clients">+</button>
+      </div>
+    </div>
+    <div class="reset-buttons">
+      <button class="reset-btn" id="show-reset-modal-btn" data-tooltip="Remettre le compteur de clients à 0">
+        <i class="fas fa-undo"></i> Réinitialiser le Compteur
+      </button>
+      <div class="modal-overlay" id="capaciteModalOverlay">
+    <div class="modal">
+        <p>Êtes-vous sûr de vouloir réinitialiser le nombre de clients actuel à 0 ?</p>
+        <div class="modal-buttons">
+            <button class="modal-btn yes" id="confirm-reset-btn">Oui</button>
+            <button class="modal-btn no" id="cancel-reset-btn">Non</button>
+        </div>
+    </div>
+</div>
+      <button class="auto-reset-btn" id="show-auto-reset-btn" data-tooltip="Programmer une réinitialisation automatique du compteur">
+        <i class="fas fa-calendar-alt"></i> Planifier une Réinitialisation
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="container" id="capaciteAutoResetInterface" style="display: none;">
+  <div class="header">
+    <h1>Redémarrage Automatique</h1>
+    <div class="subtitle">Planification de la remise à zéro des compteurs</div>
+  </div>
+
+  <div class="schedule-section">
+    <!-- Days will be rendered dynamically in JS -->
+  </div>
+</div>

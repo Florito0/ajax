@@ -1,4 +1,5 @@
-// gestion-capacite.js - Version complète avec modale dynamique
+// gestion-capacite.js - Version corrigée pour la réinitialisation
+
 class GestionCapacite {
     constructor(containerId) {
         this.containerId = containerId;
@@ -214,73 +215,80 @@ class GestionCapacite {
 
     // NOUVELLE MÉTHODE : Créer une modale de confirmation dynamique
     showConfirmation(message) {
-    return new Promise((resolve) => {
-        console.log('🛡️ [DEBUG] Création de la modale de confirmation'); // Vérifiez en F12 au clic.
-        const modalHtml = `
-            <div class="modal-overlay" id="dynamicResetModal"> <!-- Classe corrigée + ID unique -->
-                <div class="modal">
-                    <p>${message}</p>
-                    <div class="modal-buttons">
-                        <button class="modal-btn yes" id="confirm-yes">Oui</button>
-                        <button class="modal-btn no" id="confirm-no">Non</button>
+        return new Promise((resolve) => {
+            console.log('🛡️ [DEBUG] Création de la modale de confirmation');
+            
+            // Utiliser les classes CSS existantes de votre projet
+            const modalHtml = `
+                <div class="modal-overlay show" id="dynamicResetModal">
+                    <div class="modal">
+                        <p>${message}</p>
+                        <div class="modal-buttons">
+                            <button class="modal-btn yes" id="confirm-yes">Oui</button>
+                            <button class="modal-btn no" id="confirm-no">Non</button>
+                        </div>
                     </div>
                 </div>
-            </div>
-        `;
-        
-        document.body.insertAdjacentHTML('beforeend', modalHtml);
-        const modal = document.querySelector('.modal-overlay:last-child');
-        
-        setTimeout(() => {
-            if (modal) {
-                modal.classList.add('show');
-                console.log('🛡️ [DEBUG] Classe "show" ajoutée – Modale devrait être visible'); // Confirme l'animation.
-            } else {
-                console.error('🛡️ [ERROR] Modale non trouvée après ajout');
-            }
-        }, 10);
-        
-        const yesBtn = modal.querySelector('#confirm-yes');
-        const noBtn = modal.querySelector('#confirm-no');
-        
-        const cleanup = () => {
-            modal.classList.remove('show');
-            setTimeout(() => modal.remove(), 300);
-        };
-        
-        yesBtn.onclick = () => {
-            console.log('🛡️ [DEBUG] Clique Oui – Appel à resetCount');
-            cleanup();
-            resolve(true);
-        };
-        
-        noBtn.onclick = () => {
-            console.log('🛡️ [DEBUG] Clique Non');
-            cleanup();
-            resolve(false);
-        };
-        
-        modal.onclick = (e) => {
-            if (e.target === modal) {
-                console.log('🛡️ [DEBUG] Fermeture par fond');
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const modal = document.querySelector('#dynamicResetModal');
+            
+            const yesBtn = modal.querySelector('#confirm-yes');
+            const noBtn = modal.querySelector('#confirm-no');
+            
+            const cleanup = () => {
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    if (modal && modal.parentNode) {
+                        modal.parentNode.removeChild(modal);
+                    }
+                }, 300);
+            };
+            
+            yesBtn.onclick = () => {
+                console.log('🛡️ [DEBUG] Clique Oui – Confirmation de la réinitialisation');
+                cleanup();
+                resolve(true);
+            };
+            
+            noBtn.onclick = () => {
+                console.log('🛡️ [DEBUG] Clique Non – Annulation');
                 cleanup();
                 resolve(false);
-            }
-        };
-    });
-}
+            };
+            
+            // Fermer en cliquant sur le fond
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    console.log('🛡️ [DEBUG] Fermeture par clic sur le fond');
+                    cleanup();
+                    resolve(false);
+                }
+            };
+        });
+    }
 
-    // MÉTHODE MODIFIÉE : Utiliser showConfirmation au lieu de showModal
+    // MÉTHODE MODIFIÉE : Gérer la réinitialisation avec confirmation
     async handleReset() {
+        console.log('🔄 [DEBUG] Début de handleReset');
+        
+        // Afficher la confirmation avec le message demandé
         const confirmed = await this.showConfirmation('Êtes-vous sûr de vouloir réinitialiser le nombre de clients actuel à 0 ?');
+        
         if (confirmed) {
+            console.log('✅ [DEBUG] Confirmation reçue, lancement de resetCount');
             await this.resetCount();
-            this.showAlert('Compteur réinitialisé avec succès!', 'success');
+        } else {
+            console.log('❌ [DEBUG] Réinitialisation annulée par l\'utilisateur');
         }
     }
 
+    // MÉTHODE CORRIGÉE : Réinitialiser le compteur via l'API
     async resetCount() {
         try {
+            console.log('🔄 [DEBUG] Appel API pour réinitialiser le compteur');
+            
             const response = await fetch(`${this.apiUrl}/reset`, {
                 method: 'PATCH',
                 headers: {
@@ -290,15 +298,23 @@ class GestionCapacite {
             });
             
             if (!response.ok) {
-                throw new Error('Erreur lors de la réinitialisation');
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Erreur lors de la réinitialisation');
             }
             
             const data = await response.json();
-            this.currentCount = data.data.current;
+            console.log('✅ [DEBUG] Réponse API:', data);
+            
+            // Mettre à jour l'affichage avec la nouvelle valeur
+            this.currentCount = data.data.current; // Devrait être 0
             this.updateDisplay();
+            
+            // Afficher un message de succès
+            this.showAlert('Compteur réinitialisé avec succès!', 'success');
+            
         } catch (error) {
-            console.error('Erreur lors de la réinitialisation:', error);
-            this.showAlert('Erreur lors de la réinitialisation du compteur', 'error');
+            console.error('❌ Erreur lors de la réinitialisation:', error);
+            this.showAlert(`Erreur lors de la réinitialisation: ${error.message}`, 'error');
         }
     }
 
@@ -500,6 +516,7 @@ class GestionCapacite {
         }
     }
 
+    // MÉTHODE CORRIGÉE : Attacher les event listeners
     attachEventListeners() {
         // Bouton de mise à jour de capacité
         const updateBtn = document.getElementById('update-capacity-btn');
@@ -515,10 +532,17 @@ class GestionCapacite {
             });
         });
 
-        // MODIFIÉ : Bouton de réinitialisation utilise maintenant handleReset
+        // CORRIGÉ : Bouton de réinitialisation utilise maintenant handleReset
         const resetBtn = document.getElementById('show-reset-modal-btn');
         if (resetBtn) {
-            resetBtn.addEventListener('click', () => this.handleReset());
+            console.log('🔧 [DEBUG] Event listener attaché au bouton de réinitialisation');
+            resetBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('🔄 [DEBUG] Clic sur le bouton de réinitialisation');
+                this.handleReset();
+            });
+        } else {
+            console.warn('⚠️ [DEBUG] Bouton de réinitialisation non trouvé');
         }
 
         // Bouton de planification

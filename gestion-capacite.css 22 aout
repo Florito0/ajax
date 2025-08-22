@@ -260,7 +260,7 @@
 }
 
 /* Modale de confirmation */
-#gestion-capacite .modal-overlay {
+.modal-overlay {
     position: fixed;
     top: 0;
     left: 0;
@@ -276,12 +276,12 @@
     transition: opacity 0.3s ease;
 }
 
-#gestion-capacite .modal-overlay.show {
+.modal-overlay.show {
     visibility: visible;
     opacity: 1;
 }
 
-#gestion-capacite .modal {
+.modal-overlay .modal {
     background-color: #2c2c2c;
     border-radius: 8px;
     padding: 20px;
@@ -291,19 +291,19 @@
     box-shadow: 0 5px 15px rgba(0, 0, 0, 0.5);
 }
 
-#gestion-capacite .modal p {
+.modal-overlay .modal p {
     font-size: clamp(14px, 4vw, 16px);
     margin-bottom: 20px;
     color: #b3b3b3;
 }
 
-#gestion-capacite .modal-buttons {
+.modal-overlay .modal-buttons {
     display: flex;
     justify-content: center;
     gap: 10px;
 }
 
-#gestion-capacite .modal-btn {
+.modal-overlay .modal-btn {
     padding: 10px 20px;
     border: none;
     border-radius: 4px;
@@ -313,17 +313,17 @@
     transition: opacity 0.2s;
 }
 
-#gestion-capacite .modal-btn.yes {
+.modal-overlay .modal-btn.yes {
     background: linear-gradient(to right, #ff4444, #ff7777);
     color: white;
 }
 
-#gestion-capacite .modal-btn.no {
+.modal-overlay .modal-btn.no {
     background: linear-gradient(to right, #666, #999);
     color: white;
 }
 
-#gestion-capacite .modal-btn:hover {
+.modal-overlay .modal-btn:hover {
     opacity: 0.9;
 }
 
@@ -456,6 +456,7 @@
         width: 100%;
         justify-content: flex-start;
     }
+}
 
 /* Alertes */
 .capacite-alert {
@@ -510,5 +511,4 @@
         transform: translateX(400px);
         opacity: 0;
     }
-}
 }

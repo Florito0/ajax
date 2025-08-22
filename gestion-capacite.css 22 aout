@@ -456,4 +456,59 @@
         width: 100%;
         justify-content: flex-start;
     }
+
+/* Alertes */
+.capacite-alert {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    padding: 15px 20px;
+    border-radius: 8px;
+    color: white;
+    font-weight: 600;
+    z-index: 10001;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    transform: translateX(400px);
+    transition: transform 0.3s ease;
+    max-width: 350px;
+}
+
+.capacite-alert.show {
+    transform: translateX(0);
+}
+
+.capacite-alert.success {
+    background: linear-gradient(to right, #4CAF50, #66BB6A);
+}
+
+.capacite-alert.error {
+    background: linear-gradient(to right, #f44336, #ef5350);
+}
+
+.capacite-alert.info {
+    background: linear-gradient(to right, #2196F3, #42A5F5);
+}
+
+/* Animation pour les alertes */
+@keyframes slideIn {
+    from {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+@keyframes slideOut {
+    from {
+        transform: translateX(0);
+        opacity: 1;
+    }
+    to {
+        transform: translateX(400px);
+        opacity: 0;
+    }
+}
 }

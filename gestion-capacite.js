@@ -1,0 +1,535 @@
+// gestion-capacite.js - Version complète avec modale dynamique
+class GestionCapacite {
+    constructor(containerId) {
+        this.containerId = containerId;
+        this.maxCapacity = 100;
+        this.currentCount = 0;
+        this.schedule = {};
+        this.token = localStorage.getItem('token');
+        this.apiUrl = '/api/capacite';
+        this.discothequeId = null;
+        this.userId = null;
+    }
+
+    init() {
+        this.getUserInfo().then(() => {
+            this.loadData();
+            this.attachEventListeners();
+        }).catch(error => {
+            console.error('Erreur initialisation:', error);
+            // Continuer même sans les infos utilisateur
+            this.attachEventListeners();
+            this.updateDisplay();
+        });
+    }
+
+    async getUserInfo() {
+        try {
+            const response = await fetch('/api/auth/current-user', {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                this.userId = data.userId;
+                this.discothequeId = data.discothequeId;
+                console.log('User info loaded:', { userId: this.userId, discothequeId: this.discothequeId });
+            } else {
+                console.warn('Impossible de récupérer les infos utilisateur');
+            }
+        } catch (error) {
+            console.error('Erreur lors de la récupération des infos utilisateur:', error);
+        }
+    }
+
+    async loadData() {
+        try {
+            const response = await fetch(this.apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    const capaciteData = data[0];
+                    this.maxCapacity = capaciteData.max || 100;
+                    this.currentCount = capaciteData.current || 0;
+                    this.schedule = capaciteData.reset_schedule || {};
+                    this.updateDisplay();
+                    
+                    // Charger le planning seulement si on est sur l'interface de planification
+                    const autoResetInterface = document.getElementById('capaciteAutoResetInterface');
+                    if (autoResetInterface && autoResetInterface.style.display !== 'none') {
+                        this.loadSchedule();
+                    }
+                } else {
+                    // Pas de données, utiliser les valeurs par défaut
+                    this.updateDisplay();
+                }
+            } else {
+                console.warn('Pas de données de capacité trouvées');
+                this.updateDisplay();
+            }
+        } catch (error) {
+            console.error('Erreur lors du chargement des données:', error);
+            this.updateDisplay(); // Afficher avec les valeurs par défaut
+        }
+    }
+
+    async saveData() {
+        // Si on n'a pas les IDs nécessaires, on essaye de les récupérer
+        if (!this.discothequeId || !this.userId) {
+            await this.getUserInfo();
+        }
+
+        // Si on n'a toujours pas les IDs, on ne peut pas sauvegarder
+        if (!this.discothequeId || !this.userId) {
+            console.warn('Impossible de sauvegarder : IDs manquants');
+            return false;
+        }
+
+        try {
+            const response = await fetch(this.apiUrl, {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({
+                    discotheque_id: this.discothequeId,
+                    user_id: this.userId,
+                    max: this.maxCapacity,
+                    current: this.currentCount,
+                    reset_schedule: this.schedule
+                })
+            });
+
+            if (!response.ok) {
+                const error = await response.json();
+                console.error('Erreur serveur:', error);
+                return false;
+            }
+
+            return true;
+        } catch (error) {
+            console.error('Erreur lors de la sauvegarde:', error);
+            return false;
+        }
+    }
+
+    interpolateColor(color1, color2, factor) {
+        const r1 = parseInt(color1.slice(1, 3), 16);
+        const g1 = parseInt(color1.slice(3, 5), 16);
+        const b1 = parseInt(color1.slice(5, 7), 16);
+        const r2 = parseInt(color2.slice(1, 3), 16);
+        const g2 = parseInt(color2.slice(3, 5), 16);
+        const b2 = parseInt(color2.slice(5, 7), 16);
+
+        const r = Math.round(r1 + (r2 - r1) * factor);
+        const g = Math.round(g1 + (g2 - g1) * factor);
+        const b = Math.round(b1 + (b2 - b1) * factor);
+
+        return `rgb(${r}, ${g}, ${b})`;
+    }
+
+    updateDisplay() {
+        const currentCapacityEl = document.getElementById('current-capacity-display');
+        const capacityFillEl = document.getElementById('capacity-fill');
+        const capacityTextEl = document.getElementById('capacity-text-display');
+        const currentInput = document.getElementById('current-count-input');
+        const maxInput = document.getElementById('max-capacity-input');
+        
+        if (currentCapacityEl) currentCapacityEl.textContent = this.currentCount;
+        if (currentInput) currentInput.value = this.currentCount;
+        if (maxInput) maxInput.value = this.maxCapacity;
+        
+        const percentage = this.maxCapacity > 0 ? (this.currentCount / this.maxCapacity) * 100 : 0;
+        if (capacityFillEl) {
+            capacityFillEl.style.width = `${percentage}%`;
+            
+            const startColor1 = '#9733EE';
+            const startColor2 = '#DA22FF';
+            const endColor = '#ff4444';
+            const factor = this.maxCapacity > 0 ? this.currentCount / this.maxCapacity : 0;
+            
+            const dynamicEndColor = this.interpolateColor(startColor2, endColor, factor);
+            capacityFillEl.style.background = `linear-gradient(to right, ${startColor1}, ${dynamicEndColor})`;
+        }
+        
+        if (capacityTextEl) {
+            capacityTextEl.innerHTML = `${this.currentCount} / <span class="max-capacity">${this.maxCapacity}</span>`;
+        }
+    }
+
+    async updateCount(change) {
+        let newCount = this.currentCount + change;
+        
+        if (newCount < 0) newCount = 0;
+        if (newCount > this.maxCapacity) newCount = this.maxCapacity;
+        
+        this.currentCount = newCount;
+        this.updateDisplay();
+        
+        // Sauvegarde automatique avec debouncing
+        clearTimeout(this.saveTimeout);
+        this.saveTimeout = setTimeout(() => {
+            this.saveData();
+        }, 500);
+    }
+
+    async updateCapacity() {
+        const maxInput = document.getElementById('max-capacity-input');
+        const updateBtn = document.getElementById('update-capacity-btn');
+        
+        this.maxCapacity = parseInt(maxInput.value) || 0;
+        if (this.maxCapacity < 0) this.maxCapacity = 0;
+        
+        if (this.currentCount > this.maxCapacity) {
+            this.currentCount = this.maxCapacity;
+        }
+        
+        this.updateDisplay();
+        
+        const success = await this.saveData();
+        
+        if (updateBtn) {
+            if (success) {
+                updateBtn.style.background = 'linear-gradient(to right, #33cc33, #66ff66)';
+                setTimeout(() => {
+                    updateBtn.style.background = 'linear-gradient(to right, #9733EE, #DA22FF)';
+                }, 500);
+            } else {
+                updateBtn.style.background = 'linear-gradient(to right, #ff4444, #ff6666)';
+                setTimeout(() => {
+                    updateBtn.style.background = 'linear-gradient(to right, #9733EE, #DA22FF)';
+                }, 500);
+            }
+        }
+    }
+
+    // NOUVELLE MÉTHODE : Créer une modale de confirmation dynamique
+    showConfirmation(message) {
+    return new Promise((resolve) => {
+        console.log('🛡️ [DEBUG] Création de la modale de confirmation'); // Vérifiez en F12 au clic.
+        const modalHtml = `
+            <div class="modal-overlay" id="dynamicResetModal"> <!-- Classe corrigée + ID unique -->
+                <div class="modal">
+                    <p>${message}</p>
+                    <div class="modal-buttons">
+                        <button class="modal-btn yes" id="confirm-yes">Oui</button>
+                        <button class="modal-btn no" id="confirm-no">Non</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        const modal = document.querySelector('.modal-overlay:last-child');
+        
+        setTimeout(() => {
+            if (modal) {
+                modal.classList.add('show');
+                console.log('🛡️ [DEBUG] Classe "show" ajoutée – Modale devrait être visible'); // Confirme l'animation.
+            } else {
+                console.error('🛡️ [ERROR] Modale non trouvée après ajout');
+            }
+        }, 10);
+        
+        const yesBtn = modal.querySelector('#confirm-yes');
+        const noBtn = modal.querySelector('#confirm-no');
+        
+        const cleanup = () => {
+            modal.classList.remove('show');
+            setTimeout(() => modal.remove(), 300);
+        };
+        
+        yesBtn.onclick = () => {
+            console.log('🛡️ [DEBUG] Clique Oui – Appel à resetCount');
+            cleanup();
+            resolve(true);
+        };
+        
+        noBtn.onclick = () => {
+            console.log('🛡️ [DEBUG] Clique Non');
+            cleanup();
+            resolve(false);
+        };
+        
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                console.log('🛡️ [DEBUG] Fermeture par fond');
+                cleanup();
+                resolve(false);
+            }
+        };
+    });
+}
+
+    // MÉTHODE MODIFIÉE : Utiliser showConfirmation au lieu de showModal
+    async handleReset() {
+        const confirmed = await this.showConfirmation('Êtes-vous sûr de vouloir réinitialiser le nombre de clients actuel à 0 ?');
+        if (confirmed) {
+            await this.resetCount();
+            this.showAlert('Compteur réinitialisé avec succès!', 'success');
+        }
+    }
+
+    async resetCount() {
+        try {
+            const response = await fetch(`${this.apiUrl}/reset`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                throw new Error('Erreur lors de la réinitialisation');
+            }
+            
+            const data = await response.json();
+            this.currentCount = data.data.current;
+            this.updateDisplay();
+        } catch (error) {
+            console.error('Erreur lors de la réinitialisation:', error);
+            this.showAlert('Erreur lors de la réinitialisation du compteur', 'error');
+        }
+    }
+
+    // NOUVELLE MÉTHODE : Afficher des alertes
+    showAlert(message, type = 'info') {
+        const alertHtml = `
+            <div class="capacite-alert ${type}">
+                ${message}
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+        const alert = document.querySelector('.capacite-alert:last-child');
+        
+        // Animation d'entrée
+        setTimeout(() => {
+            alert.classList.add('show');
+        }, 10);
+        
+        // Suppression automatique après 3 secondes
+        setTimeout(() => {
+            alert.classList.remove('show');
+            setTimeout(() => {
+                if (alert && alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 300);
+        }, 3000);
+    }
+
+    showAutoResetInterface() {
+        const mainInterface = document.getElementById('capaciteMainInterface');
+        const autoResetInterface = document.getElementById('capaciteAutoResetInterface');
+        
+        if (mainInterface) mainInterface.style.display = 'none';
+        if (autoResetInterface) {
+            autoResetInterface.style.display = 'block';
+            this.renderScheduleDays();
+        }
+    }
+
+    showMainInterface() {
+        const mainInterface = document.getElementById('capaciteMainInterface');
+        const autoResetInterface = document.getElementById('capaciteAutoResetInterface');
+        
+        if (autoResetInterface) autoResetInterface.style.display = 'none';
+        if (mainInterface) mainInterface.style.display = 'block';
+    }
+
+    renderScheduleDays() {
+        const scheduleSection = document.querySelector('#capaciteAutoResetInterface .schedule-section');
+        if (!scheduleSection) return;
+
+        const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+        
+        let html = '';
+        days.forEach(day => {
+            const dayKey = day.toLowerCase();
+            const isEnabled = this.schedule[dayKey] && this.schedule[dayKey] !== 'Désactivé';
+            const time = isEnabled ? this.schedule[dayKey] : '00:00';
+            
+            html += `
+                <div class="day-schedule">
+                    <div class="day-header ${isEnabled ? 'active' : ''}">
+                        <input type="checkbox" class="toggle" id="${dayKey}-toggle" ${isEnabled ? 'checked' : ''}>
+                        <span class="day-name">${day}</span>
+                        <span class="status ${isEnabled ? 'active' : 'inactive'}">${isEnabled ? 'Activé' : 'Désactivé'}</span>
+                        <input type="time" class="time-input" value="${time}" ${!isEnabled ? 'disabled' : ''}>
+                    </div>
+                </div>
+            `;
+        });
+
+        html += `
+            <button class="update-btn" id="save-schedule-btn" data-tooltip="Enregistrer la planification de réinitialisation">
+                <i class="fas fa-save"></i> Enregistrer la planification
+            </button>
+            <button class="back-btn" id="back-to-main-btn">
+                <i class="fas fa-arrow-left"></i> Retour à Gestion Capacité
+            </button>
+        `;
+
+        scheduleSection.innerHTML = html;
+        this.attachScheduleListeners();
+    }
+
+    attachScheduleListeners() {
+        document.querySelectorAll('#capaciteAutoResetInterface .toggle').forEach(toggle => {
+            toggle.addEventListener('change', (e) => {
+                const dayHeader = e.target.closest('.day-header');
+                const timeInput = dayHeader.querySelector('.time-input');
+                const status = dayHeader.querySelector('.status');
+                
+                timeInput.disabled = !e.target.checked;
+                dayHeader.classList.toggle('active', e.target.checked);
+                
+                if (e.target.checked) {
+                    status.textContent = 'Activé';
+                    status.classList.remove('inactive');
+                    status.classList.add('active');
+                } else {
+                    status.textContent = 'Désactivé';
+                    status.classList.remove('active');
+                    status.classList.add('inactive');
+                    timeInput.value = '00:00';
+                }
+            });
+        });
+
+        const saveBtn = document.getElementById('save-schedule-btn');
+        if (saveBtn) {
+            saveBtn.addEventListener('click', () => this.saveSchedule());
+        }
+
+        const backBtn = document.getElementById('back-to-main-btn');
+        if (backBtn) {
+            backBtn.addEventListener('click', () => this.showMainInterface());
+        }
+    }
+
+    loadSchedule() {
+        if (!this.schedule || Object.keys(this.schedule).length === 0) return;
+
+        // S'assurer que l'interface de planification est rendue avant de charger
+        const autoResetInterface = document.getElementById('capaciteAutoResetInterface');
+        if (!autoResetInterface || autoResetInterface.style.display === 'none') return;
+
+        Object.keys(this.schedule).forEach(dayKey => {
+            const toggle = document.getElementById(`${dayKey}-toggle`);
+            if (!toggle) return; // Si l'élément n'existe pas, on passe
+            
+            const dayHeader = toggle.closest('.day-header');
+            if (!dayHeader) return;
+            
+            const timeInput = dayHeader.querySelector('.time-input');
+            const status = dayHeader.querySelector('.status');
+            
+            if (toggle && timeInput) {
+                const isEnabled = this.schedule[dayKey] && this.schedule[dayKey] !== 'Désactivé';
+                toggle.checked = isEnabled;
+                timeInput.value = isEnabled ? this.schedule[dayKey] : '00:00';
+                timeInput.disabled = !isEnabled;
+                
+                if (isEnabled) {
+                    dayHeader.classList.add('active');
+                    if (status) {
+                        status.textContent = 'Activé';
+                        status.classList.remove('inactive');
+                        status.classList.add('active');
+                    }
+                } else {
+                    dayHeader.classList.remove('active');
+                    if (status) {
+                        status.textContent = 'Désactivé';
+                        status.classList.remove('active');
+                        status.classList.add('inactive');
+                    }
+                }
+            }
+        });
+    }
+
+    async saveSchedule() {
+        // Demander confirmation avant de sauvegarder
+        const confirmed = await this.showConfirmation('Souhaitez-vous enregistrer la planification de réinitialisation automatique ?');
+        if (!confirmed) return;
+
+        let hasError = false;
+        const newSchedule = {};
+
+        document.querySelectorAll('#capaciteAutoResetInterface .day-schedule').forEach(day => {
+            const toggle = day.querySelector('.toggle');
+            const timeInput = day.querySelector('.time-input');
+            const dayName = day.querySelector('.day-name').textContent;
+            const dayKey = dayName.toLowerCase();
+
+            if (toggle.checked && !timeInput.value) {
+                hasError = true;
+                timeInput.style.border = '1px solid #ff4444';
+            } else {
+                timeInput.style.border = 'none';
+                newSchedule[dayKey] = toggle.checked ? timeInput.value : 'Désactivé';
+            }
+        });
+
+        if (hasError) {
+            this.showAlert('Veuillez spécifier une heure pour tous les jours activés.', 'error');
+        } else {
+            this.schedule = newSchedule;
+            const success = await this.saveData();
+            if (success) {
+                this.showAlert('Planification enregistrée avec succès !', 'success');
+                setTimeout(() => {
+                    this.showMainInterface();
+                }, 1500);
+            } else {
+                this.showAlert('Erreur lors de l\'enregistrement. Veuillez réessayer.', 'error');
+            }
+        }
+    }
+
+    attachEventListeners() {
+        // Bouton de mise à jour de capacité
+        const updateBtn = document.getElementById('update-capacity-btn');
+        if (updateBtn) {
+            updateBtn.addEventListener('click', () => this.updateCapacity());
+        }
+
+        // Boutons de contrôle +/-
+        document.querySelectorAll('.control-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const change = parseInt(e.target.getAttribute('data-change') || e.target.closest('button').getAttribute('data-change'));
+                if (change) this.updateCount(change);
+            });
+        });
+
+        // MODIFIÉ : Bouton de réinitialisation utilise maintenant handleReset
+        const resetBtn = document.getElementById('show-reset-modal-btn');
+        if (resetBtn) {
+            resetBtn.addEventListener('click', () => this.handleReset());
+        }
+
+        // Bouton de planification
+        const autoResetBtn = document.getElementById('show-auto-reset-btn');
+        if (autoResetBtn) {
+            autoResetBtn.addEventListener('click', () => this.showAutoResetInterface());
+        }
+    }
+}
+
+// Export pour Node.js/CommonJS
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = GestionCapacite;
+}

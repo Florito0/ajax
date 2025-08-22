@@ -1,4 +1,4 @@
-// gestion-capacite.js - Version corrigée
+// gestion-capacite.js - Version complète avec modale dynamique
 class GestionCapacite {
     constructor(containerId) {
         this.containerId = containerId;
@@ -212,31 +212,104 @@ class GestionCapacite {
         }
     }
 
+    // NOUVELLE MÉTHODE : Créer une modale de confirmation dynamique
+    showConfirmation(message) {
+        return new Promise((resolve) => {
+            // Créer la modal avec les bonnes classes CSS
+            const modalHtml = `
+                <div class="capacite-modal-overlay" id="capaciteModalOverlay">
+                    <div class="modal">
+                        <p>${message}</p>
+                        <div class="modal-buttons">
+                            <button class="modal-btn yes" id="confirm-yes">Oui</button>
+                            <button class="modal-btn no" id="confirm-no">Non</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            // Ajouter la modal au DOM
+            document.body.insertAdjacentHTML('beforeend', modalHtml);
+            const modal = document.querySelector('.capacite-modal-overlay:last-child');
+            
+            // Ajouter la classe show après un petit délai pour l'animation
+            setTimeout(() => {
+                modal.classList.add('show');
+            }, 10);
+            
+            // Gérer les clics
+            const yesBtn = modal.querySelector('#confirm-yes');
+            const noBtn = modal.querySelector('#confirm-no');
+            
+            const cleanup = () => {
+                modal.classList.remove('show');
+                setTimeout(() => {
+                    if (modal && modal.parentNode) {
+                        modal.parentNode.removeChild(modal);
+                    }
+                }, 300); // Attendre la fin de l'animation
+            };
+            
+            yesBtn.onclick = () => {
+                cleanup();
+                resolve(true);
+            };
+            
+            noBtn.onclick = () => {
+                cleanup();
+                resolve(false);
+            };
+            
+            // Fermer en cliquant sur le fond
+            modal.onclick = (e) => {
+                if (e.target === modal) {
+                    cleanup();
+                    resolve(false);
+                }
+            };
+        });
+    }
+
+    // MÉTHODE MODIFIÉE : Utiliser showConfirmation au lieu de showModal
+    async handleReset() {
+        const confirmed = await this.showConfirmation('Êtes-vous sûr de vouloir réinitialiser le nombre de clients actuel à 0 ?');
+        if (confirmed) {
+            await this.resetCount();
+            this.showAlert('Compteur réinitialisé avec succès!', 'success');
+        }
+    }
+
     async resetCount() {
         this.currentCount = 0;
         this.updateDisplay();
         await this.saveData();
     }
 
-    showModal() {
-        const modalOverlay = document.getElementById('capaciteModalOverlay');
-        if (modalOverlay) {
-            modalOverlay.classList.add('show');
-        }
-    }
-
-    hideModal() {
-        const modalOverlay = document.getElementById('capaciteModalOverlay');
-        if (modalOverlay) {
-            modalOverlay.classList.remove('show');
-        }
-    }
-
-    confirmReset(confirmed) {
-        if (confirmed) {
-            this.resetCount();
-        }
-        this.hideModal();
+    // NOUVELLE MÉTHODE : Afficher des alertes
+    showAlert(message, type = 'info') {
+        const alertHtml = `
+            <div class="capacite-alert ${type}">
+                ${message}
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', alertHtml);
+        const alert = document.querySelector('.capacite-alert:last-child');
+        
+        // Animation d'entrée
+        setTimeout(() => {
+            alert.classList.add('show');
+        }, 10);
+        
+        // Suppression automatique après 3 secondes
+        setTimeout(() => {
+            alert.classList.remove('show');
+            setTimeout(() => {
+                if (alert && alert.parentNode) {
+                    alert.parentNode.removeChild(alert);
+                }
+            }, 300);
+        }, 3000);
     }
 
     showAutoResetInterface() {
@@ -372,6 +445,10 @@ class GestionCapacite {
     }
 
     async saveSchedule() {
+        // Demander confirmation avant de sauvegarder
+        const confirmed = await this.showConfirmation('Souhaitez-vous enregistrer la planification de réinitialisation automatique ?');
+        if (!confirmed) return;
+
         let hasError = false;
         const newSchedule = {};
 
@@ -391,15 +468,17 @@ class GestionCapacite {
         });
 
         if (hasError) {
-            alert('Veuillez spécifier une heure pour tous les jours activés.');
+            this.showAlert('Veuillez spécifier une heure pour tous les jours activés.', 'error');
         } else {
             this.schedule = newSchedule;
             const success = await this.saveData();
             if (success) {
-                alert('Planification enregistrée avec succès !');
-                this.showMainInterface();
+                this.showAlert('Planification enregistrée avec succès !', 'success');
+                setTimeout(() => {
+                    this.showMainInterface();
+                }, 1500);
             } else {
-                alert('Erreur lors de l\'enregistrement. Veuillez réessayer.');
+                this.showAlert('Erreur lors de l\'enregistrement. Veuillez réessayer.', 'error');
             }
         }
     }
@@ -419,21 +498,10 @@ class GestionCapacite {
             });
         });
 
-        // Bouton de réinitialisation
+        // MODIFIÉ : Bouton de réinitialisation utilise maintenant handleReset
         const resetBtn = document.getElementById('show-reset-modal-btn');
         if (resetBtn) {
-            resetBtn.addEventListener('click', () => this.showModal());
-        }
-
-        // Boutons de la modale
-        const confirmBtn = document.getElementById('confirm-reset-btn');
-        if (confirmBtn) {
-            confirmBtn.addEventListener('click', () => this.confirmReset(true));
-        }
-
-        const cancelBtn = document.getElementById('cancel-reset-btn');
-        if (cancelBtn) {
-            cancelBtn.addEventListener('click', () => this.confirmReset(false));
+            resetBtn.addEventListener('click', () => this.handleReset());
         }
 
         // Bouton de planification

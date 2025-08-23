@@ -1,4 +1,4 @@
-// gestion-capacite.js - Version corrigée pour la réinitialisation
+// gestion-capacite.js - Version complète et corrigée
 
 class GestionCapacite {
     constructor(containerId) {
@@ -10,20 +10,26 @@ class GestionCapacite {
         this.apiUrl = '/api/capacite';
         this.discothequeId = null;
         this.userId = null;
+        this.autoResetTimer = null;
+        this.lastCheckedMinute = null;
+        this.lastKnownCount = null;
+        this.dataPollingTimer = null;
     }
 
     init() {
         this.getUserInfo().then(() => {
             this.loadData();
             this.attachEventListeners();
+            this.startFrontendAutoResetCheck();
+            this.startDataPolling();
         }).catch(error => {
             console.error('Erreur initialisation:', error);
-            // Continuer même sans les infos utilisateur
             this.attachEventListeners();
             this.updateDisplay();
         });
     }
 
+    // MÉTHODE MANQUANTE : Récupérer les informations utilisateur
     async getUserInfo() {
         try {
             const response = await fetch('/api/auth/current-user', {
@@ -45,6 +51,170 @@ class GestionCapacite {
         }
     }
 
+    // NOUVELLE MÉTHODE : Surveillance continue des données
+    startDataPolling() {
+        console.log('🔄 [POLLING] Démarrage de la surveillance des données');
+        
+        // Vérifier les données toutes les 10 secondes
+        this.dataPollingTimer = setInterval(() => {
+            this.checkForDataChanges();
+        }, 10000);
+    }
+
+    // NOUVELLE MÉTHODE : Vérifier si les données ont changé côté serveur
+    async checkForDataChanges() {
+        try {
+            // Charger les données sans mettre à jour l'affichage
+            const response = await fetch(this.apiUrl, {
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.length > 0) {
+                    const serverCurrentCount = data[0].current || 0;
+                    
+                    // Détecter une réinitialisation automatique
+                    if (this.lastKnownCount !== null && 
+                        this.lastKnownCount > 0 && 
+                        serverCurrentCount === 0) {
+                        
+                        console.log('🔄 [POLLING] Réinitialisation automatique détectée !');
+                        
+                        // Déclencher l'animation de réinitialisation
+                        this.triggerAutoResetAnimation(this.lastKnownCount);
+                        
+                        // Mettre à jour les données locales
+                        this.currentCount = serverCurrentCount;
+                        this.maxCapacity = data[0].max || this.maxCapacity;
+                        this.schedule = data[0].reset_schedule || this.schedule;
+                        
+                        // Actualiser l'affichage après l'animation
+                        setTimeout(() => {
+                            this.updateDisplay();
+                        }, 2000);
+                    }
+                    
+                    // Sauvegarder la valeur actuelle pour la prochaine comparaison
+                    this.lastKnownCount = serverCurrentCount;
+                }
+            }
+        } catch (error) {
+            console.error('❌ [POLLING] Erreur lors de la vérification des données:', error);
+        }
+    }
+
+    // NOUVELLE MÉTHODE : Animation spéciale pour la réinitialisation automatique
+    triggerAutoResetAnimation(previousCount) {
+        console.log(`🎬 [ANIMATION] Démarrage animation réinitialisation ${previousCount} → 0`);
+        
+        // Afficher la notification
+        this.showAutoResetNotification();
+        
+        // Animation du compteur qui descend progressivement
+        const currentCapacityEl = document.getElementById('current-capacity-display');
+        const capacityFillEl = document.getElementById('capacity-fill');
+        
+        if (currentCapacityEl) {
+            let currentDisplayValue = previousCount;
+            const step = Math.max(1, Math.floor(previousCount / 20)); // Animation en 20 étapes max
+            
+            const animationInterval = setInterval(() => {
+                currentDisplayValue = Math.max(0, currentDisplayValue - step);
+                currentCapacityEl.textContent = currentDisplayValue;
+                
+                // Mettre à jour la barre de progression
+                if (capacityFillEl && this.maxCapacity > 0) {
+                    const percentage = (currentDisplayValue / this.maxCapacity) * 100;
+                    capacityFillEl.style.width = `${percentage}%`;
+                }
+                
+                // Animation terminée
+                if (currentDisplayValue <= 0) {
+                    clearInterval(animationInterval);
+                    currentCapacityEl.textContent = '0';
+                    if (capacityFillEl) {
+                        capacityFillEl.style.width = '0%';
+                    }
+                    
+                    // Effet de pulsation finale
+                    currentCapacityEl.style.animation = 'pulse 0.5s ease-in-out 3';
+                    setTimeout(() => {
+                        if (currentCapacityEl) {
+                            currentCapacityEl.style.animation = '';
+                        }
+                    }, 1500);
+                    
+                    console.log('✅ [ANIMATION] Animation de réinitialisation terminée');
+                }
+            }, 100); // Animation toutes les 100ms
+        }
+    }    
+
+    // Démarrer la vérification côté frontend
+    startFrontendAutoResetCheck() {
+        console.log('🕐 [FRONTEND] Démarrage vérification auto-reset');
+        
+        // Vérifier toutes les 30 secondes (plus réactif que le backend)
+        this.autoResetTimer = setInterval(() => {
+            this.checkFrontendAutoReset();
+        }, 30000);
+        
+        // Vérification immédiate
+        this.checkFrontendAutoReset();
+    }
+
+    // Vérifier si une réinitialisation est programmée maintenant
+    async checkFrontendAutoReset() {
+        const now = new Date();
+        const currentDay = now.toLocaleDateString('fr-FR', { weekday: 'long' }).toLowerCase();
+        const currentTime = now.toTimeString().slice(0, 5); // HH:MM
+        const currentMinute = now.getMinutes();
+        
+        // Éviter les vérifications multiples dans la même minute
+        if (this.lastCheckedMinute === currentMinute) return;
+        this.lastCheckedMinute = currentMinute;
+        
+        console.log(`🕐 [FRONTEND] Vérification ${currentDay} ${currentTime}`);
+        
+        if (this.schedule && this.schedule[currentDay]) {
+            const scheduledTime = this.schedule[currentDay];
+            
+            if (scheduledTime !== 'Désactivé' && scheduledTime === currentTime) {
+                console.log('🔄 [FRONTEND] Réinitialisation automatique déclenchée !');
+                
+                // Afficher une notification
+                this.showAutoResetNotification();
+                
+                // Recharger les données depuis le serveur (au cas où le backend l'aurait déjà fait)
+                setTimeout(() => {
+                    this.loadData();
+                }, 2000);
+            }
+        }
+    }
+
+    // Afficher une notification de réinitialisation automatique
+    showAutoResetNotification() {
+        this.showAlert('🔄 Réinitialisation automatique en cours...', 'info');
+        
+        // Animation supplémentaire de l'interface
+        const container = document.querySelector('#gestion-capacite .container');
+        if (container) {
+            container.style.border = '2px solid #3399ff';
+            container.style.boxShadow = '0 0 20px rgba(51, 153, 255, 0.5)';
+            
+            setTimeout(() => {
+                container.style.border = '';
+                container.style.boxShadow = '0 10px 30px rgba(0, 0, 0, 0.5)';
+            }, 3000);
+        }
+    }
+
+    // MÉTHODE AMÉLIORÉE : loadData met à jour lastKnownCount
     async loadData() {
         try {
             const response = await fetch(this.apiUrl, {
@@ -60,6 +230,7 @@ class GestionCapacite {
                     const capaciteData = data[0];
                     this.maxCapacity = capaciteData.max || 100;
                     this.currentCount = capaciteData.current || 0;
+                    this.lastKnownCount = this.currentCount; // ← NOUVEAU : sauvegarder
                     this.schedule = capaciteData.reset_schedule || {};
                     this.updateDisplay();
                     
@@ -69,7 +240,6 @@ class GestionCapacite {
                         this.loadSchedule();
                     }
                 } else {
-                    // Pas de données, utiliser les valeurs par défaut
                     this.updateDisplay();
                 }
             } else {
@@ -78,7 +248,7 @@ class GestionCapacite {
             }
         } catch (error) {
             console.error('Erreur lors du chargement des données:', error);
-            this.updateDisplay(); // Afficher avec les valeurs par défaut
+            this.updateDisplay();
         }
     }
 
@@ -167,6 +337,7 @@ class GestionCapacite {
         }
     }
 
+    // MÉTHODE AMÉLIORÉE : updateCount met à jour lastKnownCount
     async updateCount(change) {
         let newCount = this.currentCount + change;
         
@@ -174,6 +345,7 @@ class GestionCapacite {
         if (newCount > this.maxCapacity) newCount = this.maxCapacity;
         
         this.currentCount = newCount;
+        this.lastKnownCount = newCount; // ← NOUVEAU : synchroniser
         this.updateDisplay();
         
         // Sauvegarde automatique avec debouncing
@@ -213,19 +385,72 @@ class GestionCapacite {
         }
     }
 
-    // NOUVELLE MÉTHODE : Créer une modale de confirmation dynamique
+    // Créer une modale de confirmation avec styling inline
     showConfirmation(message) {
         return new Promise((resolve) => {
             console.log('🛡️ [DEBUG] Création de la modale de confirmation');
             
-            // Utiliser les classes CSS existantes de votre projet
+            // Utiliser du styling inline pour éviter les conflits CSS
             const modalHtml = `
-                <div class="modal-overlay show" id="dynamicResetModal">
-                    <div class="modal">
-                        <p>${message}</p>
-                        <div class="modal-buttons">
-                            <button class="modal-btn yes" id="confirm-yes">Oui</button>
-                            <button class="modal-btn no" id="confirm-no">Non</button>
+                <div style="
+                    position: fixed;
+                    top: 0;
+                    left: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: rgba(0, 0, 0, 0.7);
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    z-index: 10000;
+                    font-family: Arial, sans-serif;
+                " id="dynamicResetModal">
+                    <div style="
+                        background-color: #2c2c2c;
+                        border-radius: 8px;
+                        padding: 30px;
+                        width: 90%;
+                        max-width: 400px;
+                        text-align: center;
+                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
+                        border: 1px solid #444;
+                    ">
+                        <p style="
+                            font-size: 16px;
+                            margin-bottom: 25px;
+                            color: #ffffff;
+                            line-height: 1.4;
+                            margin-top: 0;
+                        ">${message}</p>
+                        <div style="
+                            display: flex;
+                            justify-content: center;
+                            gap: 15px;
+                        ">
+                            <button id="confirm-yes" style="
+                                padding: 12px 25px;
+                                border: none;
+                                border-radius: 6px;
+                                font-size: 14px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                background: linear-gradient(to right, #ff4444, #ff6666);
+                                color: white;
+                                transition: all 0.2s ease;
+                                min-width: 80px;
+                            " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Oui</button>
+                            <button id="confirm-no" style="
+                                padding: 12px 25px;
+                                border: none;
+                                border-radius: 6px;
+                                font-size: 14px;
+                                font-weight: 600;
+                                cursor: pointer;
+                                background: linear-gradient(to right, #666, #888);
+                                color: white;
+                                transition: all 0.2s ease;
+                                min-width: 80px;
+                            " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Non</button>
                         </div>
                     </div>
                 </div>
@@ -234,31 +459,39 @@ class GestionCapacite {
             document.body.insertAdjacentHTML('beforeend', modalHtml);
             const modal = document.querySelector('#dynamicResetModal');
             
+            console.log('🛡️ [DEBUG] Modale ajoutée au DOM');
+            
             const yesBtn = modal.querySelector('#confirm-yes');
             const noBtn = modal.querySelector('#confirm-no');
             
+            console.log('🛡️ [DEBUG] Boutons trouvés:', yesBtn ? 'Oui ✓' : 'Oui ✗', noBtn ? 'Non ✓' : 'Non ✗');
+            
             const cleanup = () => {
-                modal.classList.remove('show');
-                setTimeout(() => {
-                    if (modal && modal.parentNode) {
-                        modal.parentNode.removeChild(modal);
-                    }
-                }, 300);
+                console.log('🛡️ [DEBUG] Nettoyage de la modale');
+                if (modal && modal.parentNode) {
+                    modal.parentNode.removeChild(modal);
+                }
             };
             
-            yesBtn.onclick = () => {
-                console.log('🛡️ [DEBUG] Clique Oui – Confirmation de la réinitialisation');
-                cleanup();
-                resolve(true);
-            };
+            if (yesBtn && noBtn) {
+                yesBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    console.log('🛡️ [DEBUG] Clique Oui – Confirmation de la réinitialisation');
+                    cleanup();
+                    resolve(true);
+                };
+                
+                noBtn.onclick = (e) => {
+                    e.stopPropagation();
+                    console.log('🛡️ [DEBUG] Clique Non – Annulation');
+                    cleanup();
+                    resolve(false);
+                };
+            } else {
+                console.error('🛡️ [ERROR] Boutons non trouvés dans la modale !');
+            }
             
-            noBtn.onclick = () => {
-                console.log('🛡️ [DEBUG] Clique Non – Annulation');
-                cleanup();
-                resolve(false);
-            };
-            
-            // Fermer en cliquant sur le fond
+            // Fermer en cliquant sur le fond (mais pas sur la modale elle-même)
             modal.onclick = (e) => {
                 if (e.target === modal) {
                     console.log('🛡️ [DEBUG] Fermeture par clic sur le fond');
@@ -266,6 +499,15 @@ class GestionCapacite {
                     resolve(false);
                 }
             };
+            
+            // Empêcher la fermeture lors du clic sur la modale interne
+            const modalContent = modal.querySelector('div');
+            if (modalContent) {
+                modalContent.onclick = (e) => {
+                    e.stopPropagation();
+                    console.log('🛡️ [DEBUG] Clic sur le contenu de la modale (ne ferme pas)');
+                };
+            }
         });
     }
 
@@ -284,7 +526,7 @@ class GestionCapacite {
         }
     }
 
-    // MÉTHODE CORRIGÉE : Réinitialiser le compteur via l'API
+    // MÉTHODE AMÉLIORÉE : resetCount met à jour lastKnownCount
     async resetCount() {
         try {
             console.log('🔄 [DEBUG] Appel API pour réinitialiser le compteur');
@@ -306,7 +548,8 @@ class GestionCapacite {
             console.log('✅ [DEBUG] Réponse API:', data);
             
             // Mettre à jour l'affichage avec la nouvelle valeur
-            this.currentCount = data.data.current; // Devrait être 0
+            this.currentCount = data.data.current;
+            this.lastKnownCount = this.currentCount; // ← NOUVEAU : synchroniser
             this.updateDisplay();
             
             // Afficher un message de succès
@@ -318,7 +561,24 @@ class GestionCapacite {
         }
     }
 
-    // NOUVELLE MÉTHODE : Afficher des alertes
+    // NOUVELLE MÉTHODE : Nettoyer tous les timers
+    destroy() {
+        if (this.autoResetTimer) {
+            clearInterval(this.autoResetTimer);
+            console.log('🕐 [FRONTEND] Timer auto-reset arrêté');
+        }
+        
+        if (this.dataPollingTimer) {
+            clearInterval(this.dataPollingTimer);
+            console.log('🔄 [POLLING] Timer polling arrêté');
+        }
+        
+        if (this.saveTimeout) {
+            clearTimeout(this.saveTimeout);
+        }
+    }
+
+    // Afficher des alertes
     showAlert(message, type = 'info') {
         const alertHtml = `
             <div class="capacite-alert ${type}">
@@ -365,156 +625,181 @@ class GestionCapacite {
     }
 
     renderScheduleDays() {
-        const scheduleSection = document.querySelector('#capaciteAutoResetInterface .schedule-section');
-        if (!scheduleSection) return;
+    const scheduleSection = document.querySelector('#capaciteAutoResetInterface .schedule-section');
+    if (!scheduleSection) return;
 
-        const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+    const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
+    
+    let html = `
+        <div class="schedule-info">
+            <p class="info-text">
+                <i class="fas fa-info-circle"></i>
+                <strong>Mode horaire:</strong> La réinitialisation se déclenchera à l'heure pile (ex: 12h00, 13h00, etc.)
+            </p>
+        </div>
+    `;
+    
+    days.forEach(day => {
+        const dayKey = day.toLowerCase();
+        const isEnabled = this.schedule[dayKey] && this.schedule[dayKey] !== 'Désactivé';
+        const time = isEnabled ? this.schedule[dayKey] : '12:00';
         
-        let html = '';
-        days.forEach(day => {
-            const dayKey = day.toLowerCase();
-            const isEnabled = this.schedule[dayKey] && this.schedule[dayKey] !== 'Désactivé';
-            const time = isEnabled ? this.schedule[dayKey] : '00:00';
-            
-            html += `
-                <div class="day-schedule">
-                    <div class="day-header ${isEnabled ? 'active' : ''}">
-                        <input type="checkbox" class="toggle" id="${dayKey}-toggle" ${isEnabled ? 'checked' : ''}>
-                        <span class="day-name">${day}</span>
-                        <span class="status ${isEnabled ? 'active' : 'inactive'}">${isEnabled ? 'Activé' : 'Désactivé'}</span>
-                        <input type="time" class="time-input" value="${time}" ${!isEnabled ? 'disabled' : ''}>
+        // Extraire seulement l'heure (ignorer les minutes)
+        const hourOnly = time.split(':')[0];
+        
+        html += `
+            <div class="day-schedule">
+                <div class="day-header ${isEnabled ? 'active' : ''}">
+                    <input type="checkbox" class="toggle" id="${dayKey}-toggle" ${isEnabled ? 'checked' : ''}>
+                    <span class="day-name">${day}</span>
+                    <span class="status ${isEnabled ? 'active' : 'inactive'}">${isEnabled ? 'Activé' : 'Désactivé'}</span>
+                    <div class="time-selector">
+                        <select class="hour-select" ${!isEnabled ? 'disabled' : ''}>
+                            ${this.generateHourOptions(hourOnly)}
+                        </select>
+                        <span class="hour-suffix">h00</span>
                     </div>
                 </div>
-            `;
-        });
-
-        html += `
-            <button class="update-btn" id="save-schedule-btn" data-tooltip="Enregistrer la planification de réinitialisation">
-                <i class="fas fa-save"></i> Enregistrer la planification
-            </button>
-            <button class="back-btn" id="back-to-main-btn">
-                <i class="fas fa-arrow-left"></i> Retour à Gestion Capacité
-            </button>
+            </div>
         `;
+    });
 
-        scheduleSection.innerHTML = html;
-        this.attachScheduleListeners();
+    html += `
+        <button class="update-btn" id="save-schedule-btn" data-tooltip="Enregistrer la planification de réinitialisation">
+            <i class="fas fa-save"></i> Enregistrer la planification
+        </button>
+        <button class="back-btn" id="back-to-main-btn">
+            <i class="fas fa-arrow-left"></i> Retour à Gestion Capacité
+        </button>
+    `;
+
+    scheduleSection.innerHTML = html;
+    this.attachScheduleListeners();
+}
+
+// Nouvelle méthode pour générer les options d'heures
+generateHourOptions(selectedHour = '12') {
+    let options = '';
+    for (let hour = 0; hour < 24; hour++) {
+        const hourStr = hour.toString().padStart(2, '0');
+        const selected = hourStr === selectedHour ? 'selected' : '';
+         options += `<option value="${hourStr}" ${selected}>${hourStr}</option>`;
+    }
+    return options;
+}
+
+// Méthode modifiée pour les event listeners
+attachScheduleListeners() {
+    document.querySelectorAll('#capaciteAutoResetInterface .toggle').forEach(toggle => {
+        toggle.addEventListener('change', (e) => {
+            const dayHeader = e.target.closest('.day-header');
+            const hourSelect = dayHeader.querySelector('.hour-select');
+            const status = dayHeader.querySelector('.status');
+            
+            hourSelect.disabled = !e.target.checked;
+            dayHeader.classList.toggle('active', e.target.checked);
+            
+            if (e.target.checked) {
+                status.textContent = 'Activé';
+                status.classList.remove('inactive');
+                status.classList.add('active');
+            } else {
+                status.textContent = 'Désactivé';
+                status.classList.remove('active');
+                status.classList.add('inactive');
+            }
+        });
+    });
+
+    const saveBtn = document.getElementById('save-schedule-btn');
+    if (saveBtn) {
+        saveBtn.addEventListener('click', () => this.saveSchedule());
     }
 
-    attachScheduleListeners() {
-        document.querySelectorAll('#capaciteAutoResetInterface .toggle').forEach(toggle => {
-            toggle.addEventListener('change', (e) => {
-                const dayHeader = e.target.closest('.day-header');
-                const timeInput = dayHeader.querySelector('.time-input');
-                const status = dayHeader.querySelector('.status');
+    const backBtn = document.getElementById('back-to-main-btn');
+    if (backBtn) {
+        backBtn.addEventListener('click', () => this.showMainInterface());
+    }
+}
+
+// Méthode modifiée pour charger le planning
+loadSchedule() {
+    if (!this.schedule || Object.keys(this.schedule).length === 0) return;
+
+    const autoResetInterface = document.getElementById('capaciteAutoResetInterface');
+    if (!autoResetInterface || autoResetInterface.style.display === 'none') return;
+
+    Object.keys(this.schedule).forEach(dayKey => {
+        const toggle = document.getElementById(`${dayKey}-toggle`);
+        if (!toggle) return;
+        
+        const dayHeader = toggle.closest('.day-header');
+        if (!dayHeader) return;
+        
+        const hourSelect = dayHeader.querySelector('.hour-select');
+        const status = dayHeader.querySelector('.status');
+        
+        if (toggle && hourSelect) {
+            const isEnabled = this.schedule[dayKey] && this.schedule[dayKey] !== 'Désactivé';
+            toggle.checked = isEnabled;
+            hourSelect.disabled = !isEnabled;
+            
+            if (isEnabled) {
+                // Extraire l'heure du format HH:MM
+                const hour = this.schedule[dayKey].split(':')[0];
+                hourSelect.value = hour;
                 
-                timeInput.disabled = !e.target.checked;
-                dayHeader.classList.toggle('active', e.target.checked);
-                
-                if (e.target.checked) {
+                dayHeader.classList.add('active');
+                if (status) {
                     status.textContent = 'Activé';
                     status.classList.remove('inactive');
                     status.classList.add('active');
-                } else {
+                }
+            } else {
+                dayHeader.classList.remove('active');
+                if (status) {
                     status.textContent = 'Désactivé';
                     status.classList.remove('active');
                     status.classList.add('inactive');
-                    timeInput.value = '00:00';
-                }
-            });
-        });
-
-        const saveBtn = document.getElementById('save-schedule-btn');
-        if (saveBtn) {
-            saveBtn.addEventListener('click', () => this.saveSchedule());
-        }
-
-        const backBtn = document.getElementById('back-to-main-btn');
-        if (backBtn) {
-            backBtn.addEventListener('click', () => this.showMainInterface());
-        }
-    }
-
-    loadSchedule() {
-        if (!this.schedule || Object.keys(this.schedule).length === 0) return;
-
-        // S'assurer que l'interface de planification est rendue avant de charger
-        const autoResetInterface = document.getElementById('capaciteAutoResetInterface');
-        if (!autoResetInterface || autoResetInterface.style.display === 'none') return;
-
-        Object.keys(this.schedule).forEach(dayKey => {
-            const toggle = document.getElementById(`${dayKey}-toggle`);
-            if (!toggle) return; // Si l'élément n'existe pas, on passe
-            
-            const dayHeader = toggle.closest('.day-header');
-            if (!dayHeader) return;
-            
-            const timeInput = dayHeader.querySelector('.time-input');
-            const status = dayHeader.querySelector('.status');
-            
-            if (toggle && timeInput) {
-                const isEnabled = this.schedule[dayKey] && this.schedule[dayKey] !== 'Désactivé';
-                toggle.checked = isEnabled;
-                timeInput.value = isEnabled ? this.schedule[dayKey] : '00:00';
-                timeInput.disabled = !isEnabled;
-                
-                if (isEnabled) {
-                    dayHeader.classList.add('active');
-                    if (status) {
-                        status.textContent = 'Activé';
-                        status.classList.remove('inactive');
-                        status.classList.add('active');
-                    }
-                } else {
-                    dayHeader.classList.remove('active');
-                    if (status) {
-                        status.textContent = 'Désactivé';
-                        status.classList.remove('active');
-                        status.classList.add('inactive');
-                    }
                 }
             }
-        });
-    }
+        }
+    });
+}
 
-    async saveSchedule() {
-        // Demander confirmation avant de sauvegarder
-        const confirmed = await this.showConfirmation('Souhaitez-vous enregistrer la planification de réinitialisation automatique ?');
-        if (!confirmed) return;
+// Méthode modifiée pour sauvegarder
+async saveSchedule() {
+    const confirmed = await this.showConfirmation('Souhaitez-vous enregistrer la planification de réinitialisation automatique ?');
+    if (!confirmed) return;
 
-        let hasError = false;
-        const newSchedule = {};
+    const newSchedule = {};
 
-        document.querySelectorAll('#capaciteAutoResetInterface .day-schedule').forEach(day => {
-            const toggle = day.querySelector('.toggle');
-            const timeInput = day.querySelector('.time-input');
-            const dayName = day.querySelector('.day-name').textContent;
-            const dayKey = dayName.toLowerCase();
+    document.querySelectorAll('#capaciteAutoResetInterface .day-schedule').forEach(day => {
+        const toggle = day.querySelector('.toggle');
+        const hourSelect = day.querySelector('.hour-select');
+        const dayName = day.querySelector('.day-name').textContent;
+        const dayKey = dayName.toLowerCase();
 
-            if (toggle.checked && !timeInput.value) {
-                hasError = true;
-                timeInput.style.border = '1px solid #ff4444';
-            } else {
-                timeInput.style.border = 'none';
-                newSchedule[dayKey] = toggle.checked ? timeInput.value : 'Désactivé';
-            }
-        });
-
-        if (hasError) {
-            this.showAlert('Veuillez spécifier une heure pour tous les jours activés.', 'error');
+        if (toggle.checked && hourSelect.value !== null) {
+            // Format : HH:00 (toujours à la minute 00)
+            newSchedule[dayKey] = `${hourSelect.value}:00`;
         } else {
-            this.schedule = newSchedule;
-            const success = await this.saveData();
-            if (success) {
-                this.showAlert('Planification enregistrée avec succès !', 'success');
-                setTimeout(() => {
-                    this.showMainInterface();
-                }, 1500);
-            } else {
-                this.showAlert('Erreur lors de l\'enregistrement. Veuillez réessayer.', 'error');
-            }
+            newSchedule[dayKey] = 'Désactivé';
         }
+    });
+
+    this.schedule = newSchedule;
+    const success = await this.saveData();
+    
+    if (success) {
+        this.showAlert('Planification horaire enregistrée avec succès !', 'success');
+        setTimeout(() => {
+            this.showMainInterface();
+        }, 1500);
+    } else {
+        this.showAlert('Erreur lors de l\'enregistrement. Veuillez réessayer.', 'error');
     }
+}
 
     // MÉTHODE CORRIGÉE : Attacher les event listeners
     attachEventListeners() {

@@ -1,4 +1,5 @@
-// gestion-capacite.js - Version complète avec modale dynamique
+// gestion-capacite.js - Version corrigée pour la réinitialisation
+
 class GestionCapacite {
     constructor(containerId) {
         this.containerId = containerId;
@@ -9,18 +10,82 @@ class GestionCapacite {
         this.apiUrl = '/api/capacite';
         this.discothequeId = null;
         this.userId = null;
+        this.autoResetTimer = null;
+        this.lastCheckedMinute = null;
     }
 
     init() {
         this.getUserInfo().then(() => {
             this.loadData();
             this.attachEventListeners();
+            this.startFrontendAutoResetCheck(); // ← NOUVEAU
         }).catch(error => {
             console.error('Erreur initialisation:', error);
-            // Continuer même sans les infos utilisateur
             this.attachEventListeners();
             this.updateDisplay();
         });
+    }
+
+    // Démarrer la vérification côté frontend
+    startFrontendAutoResetCheck() {
+        console.log('🕐 [FRONTEND] Démarrage vérification auto-reset');
+        
+        // Vérifier toutes les 30 secondes (plus réactif que le backend)
+        this.autoResetTimer = setInterval(() => {
+            this.checkFrontendAutoReset();
+        }, 30000);
+        
+        // Vérification immédiate
+        this.checkFrontendAutoReset();
+    }
+
+    // Vérifier si une réinitialisation est programmée maintenant
+    async checkFrontendAutoReset() {
+        const now = new Date();
+        const currentDay = now.toLocaleDateString('fr-FR', { weekday: 'long' }).toLowerCase();
+        const currentTime = now.toTimeString().slice(0, 5); // HH:MM
+        const currentMinute = now.getMinutes();
+        
+        // Éviter les vérifications multiples dans la même minute
+        if (this.lastCheckedMinute === currentMinute) return;
+        this.lastCheckedMinute = currentMinute;
+        
+        console.log(`🕐 [FRONTEND] Vérification ${currentDay} ${currentTime}`);
+        
+        if (this.schedule && this.schedule[currentDay]) {
+            const scheduledTime = this.schedule[currentDay];
+            
+            if (scheduledTime !== 'Désactivé' && scheduledTime === currentTime) {
+                console.log('🔄 [FRONTEND] Réinitialisation automatique déclenchée !');
+                
+                // Afficher une notification
+                this.showAutoResetNotification();
+                
+                // Recharger les données depuis le serveur (au cas où le backend l'aurait déjà fait)
+                setTimeout(() => {
+                    this.loadData();
+                }, 2000);
+            }
+        }
+    }
+
+    // Afficher une notification de réinitialisation automatique
+    showAutoResetNotification() {
+        this.showAlert('🔄 Réinitialisation automatique en cours...', 'info');
+        
+        // Animation spéciale pour la réinitialisation auto
+        const currentCapacityEl = document.getElementById('current-capacity-display');
+        if (currentCapacityEl) {
+            currentCapacityEl.style.animation = 'pulse 1s ease-in-out 3 times';
+        }
+    }
+
+    // Nettoyer les timers lors de la destruction
+    destroy() {
+        if (this.autoResetTimer) {
+            clearInterval(this.autoResetTimer);
+            console.log('🕐 [FRONTEND] Timer auto-reset arrêté');
+        }
     }
 
     async getUserInfo() {
@@ -213,76 +278,179 @@ class GestionCapacite {
     }
 
     // NOUVELLE MÉTHODE : Créer une modale de confirmation dynamique
-    showConfirmation(message) {
-        return new Promise((resolve) => {
-            // Créer la modal avec les bonnes classes CSS
-            const modalHtml = `
-                <div class="capacite-modal-overlay" id="capaciteModalOverlay">
-                    <div class="modal">
-                        <p>${message}</p>
-                        <div class="modal-buttons">
-                            <button class="modal-btn yes" id="confirm-yes">Oui</button>
-                            <button class="modal-btn no" id="confirm-no">Non</button>
-                        </div>
+    // NOUVELLE MÉTHODE : Créer une modale de confirmation avec styling inline
+showConfirmation(message) {
+    return new Promise((resolve) => {
+        console.log('🛡️ [DEBUG] Création de la modale de confirmation');
+        
+        // Utiliser du styling inline pour éviter les conflits CSS
+        const modalHtml = `
+            <div style="
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0, 0, 0, 0.7);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 10000;
+                font-family: Arial, sans-serif;
+            " id="dynamicResetModal">
+                <div style="
+                    background-color: #2c2c2c;
+                    border-radius: 8px;
+                    padding: 30px;
+                    width: 90%;
+                    max-width: 400px;
+                    text-align: center;
+                    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
+                    border: 1px solid #444;
+                ">
+                    <p style="
+                        font-size: 16px;
+                        margin-bottom: 25px;
+                        color: #ffffff;
+                        line-height: 1.4;
+                        margin-top: 0;
+                    ">${message}</p>
+                    <div style="
+                        display: flex;
+                        justify-content: center;
+                        gap: 15px;
+                    ">
+                        <button id="confirm-yes" style="
+                            padding: 12px 25px;
+                            border: none;
+                            border-radius: 6px;
+                            font-size: 14px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            background: linear-gradient(to right, #ff4444, #ff6666);
+                            color: white;
+                            transition: all 0.2s ease;
+                            min-width: 80px;
+                        " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Oui</button>
+                        <button id="confirm-no" style="
+                            padding: 12px 25px;
+                            border: none;
+                            border-radius: 6px;
+                            font-size: 14px;
+                            font-weight: 600;
+                            cursor: pointer;
+                            background: linear-gradient(to right, #666, #888);
+                            color: white;
+                            transition: all 0.2s ease;
+                            min-width: 80px;
+                        " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Non</button>
                     </div>
                 </div>
-            `;
-            
-            // Ajouter la modal au DOM
-            document.body.insertAdjacentHTML('beforeend', modalHtml);
-            const modal = document.querySelector('.capacite-modal-overlay:last-child');
-            
-            // Ajouter la classe show après un petit délai pour l'animation
-            setTimeout(() => {
-                modal.classList.add('show');
-            }, 10);
-            
-            // Gérer les clics
-            const yesBtn = modal.querySelector('#confirm-yes');
-            const noBtn = modal.querySelector('#confirm-no');
-            
-            const cleanup = () => {
-                modal.classList.remove('show');
-                setTimeout(() => {
-                    if (modal && modal.parentNode) {
-                        modal.parentNode.removeChild(modal);
-                    }
-                }, 300); // Attendre la fin de l'animation
-            };
-            
-            yesBtn.onclick = () => {
+            </div>
+        `;
+        
+        document.body.insertAdjacentHTML('beforeend', modalHtml);
+        const modal = document.querySelector('#dynamicResetModal');
+        
+        console.log('🛡️ [DEBUG] Modale ajoutée au DOM');
+        
+        const yesBtn = modal.querySelector('#confirm-yes');
+        const noBtn = modal.querySelector('#confirm-no');
+        
+        console.log('🛡️ [DEBUG] Boutons trouvés:', yesBtn ? 'Oui ✓' : 'Oui ✗', noBtn ? 'Non ✓' : 'Non ✗');
+        
+        const cleanup = () => {
+            console.log('🛡️ [DEBUG] Nettoyage de la modale');
+            if (modal && modal.parentNode) {
+                modal.parentNode.removeChild(modal);
+            }
+        };
+        
+        if (yesBtn && noBtn) {
+            yesBtn.onclick = (e) => {
+                e.stopPropagation();
+                console.log('🛡️ [DEBUG] Clique Oui – Confirmation de la réinitialisation');
                 cleanup();
                 resolve(true);
             };
             
-            noBtn.onclick = () => {
+            noBtn.onclick = (e) => {
+                e.stopPropagation();
+                console.log('🛡️ [DEBUG] Clique Non – Annulation');
                 cleanup();
                 resolve(false);
             };
-            
-            // Fermer en cliquant sur le fond
-            modal.onclick = (e) => {
-                if (e.target === modal) {
-                    cleanup();
-                    resolve(false);
-                }
+        } else {
+            console.error('🛡️ [ERROR] Boutons non trouvés dans la modale !');
+        }
+        
+        // Fermer en cliquant sur le fond (mais pas sur la modale elle-même)
+        modal.onclick = (e) => {
+            if (e.target === modal) {
+                console.log('🛡️ [DEBUG] Fermeture par clic sur le fond');
+                cleanup();
+                resolve(false);
+            }
+        };
+        
+        // Empêcher la fermeture lors du clic sur la modale interne
+        const modalContent = modal.querySelector('div');
+        if (modalContent) {
+            modalContent.onclick = (e) => {
+                e.stopPropagation();
+                console.log('🛡️ [DEBUG] Clic sur le contenu de la modale (ne ferme pas)');
             };
-        });
-    }
+        }
+    });
+}
 
-    // MÉTHODE MODIFIÉE : Utiliser showConfirmation au lieu de showModal
+    // MÉTHODE MODIFIÉE : Gérer la réinitialisation avec confirmation
     async handleReset() {
+        console.log('🔄 [DEBUG] Début de handleReset');
+        
+        // Afficher la confirmation avec le message demandé
         const confirmed = await this.showConfirmation('Êtes-vous sûr de vouloir réinitialiser le nombre de clients actuel à 0 ?');
+        
         if (confirmed) {
+            console.log('✅ [DEBUG] Confirmation reçue, lancement de resetCount');
             await this.resetCount();
-            this.showAlert('Compteur réinitialisé avec succès!', 'success');
+        } else {
+            console.log('❌ [DEBUG] Réinitialisation annulée par l\'utilisateur');
         }
     }
 
+    // MÉTHODE CORRIGÉE : Réinitialiser le compteur via l'API
     async resetCount() {
-        this.currentCount = 0;
-        this.updateDisplay();
-        await this.saveData();
+        try {
+            console.log('🔄 [DEBUG] Appel API pour réinitialiser le compteur');
+            
+            const response = await fetch(`${this.apiUrl}/reset`, {
+                method: 'PATCH',
+                headers: {
+                    'Authorization': `Bearer ${this.token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+            
+            if (!response.ok) {
+                const errorData = await response.json().catch(() => ({}));
+                throw new Error(errorData.error || 'Erreur lors de la réinitialisation');
+            }
+            
+            const data = await response.json();
+            console.log('✅ [DEBUG] Réponse API:', data);
+            
+            // Mettre à jour l'affichage avec la nouvelle valeur
+            this.currentCount = data.data.current; // Devrait être 0
+            this.updateDisplay();
+            
+            // Afficher un message de succès
+            this.showAlert('Compteur réinitialisé avec succès!', 'success');
+            
+        } catch (error) {
+            console.error('❌ Erreur lors de la réinitialisation:', error);
+            this.showAlert(`Erreur lors de la réinitialisation: ${error.message}`, 'error');
+        }
     }
 
     // NOUVELLE MÉTHODE : Afficher des alertes
@@ -483,6 +651,7 @@ class GestionCapacite {
         }
     }
 
+    // MÉTHODE CORRIGÉE : Attacher les event listeners
     attachEventListeners() {
         // Bouton de mise à jour de capacité
         const updateBtn = document.getElementById('update-capacity-btn');
@@ -498,10 +667,17 @@ class GestionCapacite {
             });
         });
 
-        // MODIFIÉ : Bouton de réinitialisation utilise maintenant handleReset
+        // CORRIGÉ : Bouton de réinitialisation utilise maintenant handleReset
         const resetBtn = document.getElementById('show-reset-modal-btn');
         if (resetBtn) {
-            resetBtn.addEventListener('click', () => this.handleReset());
+            console.log('🔧 [DEBUG] Event listener attaché au bouton de réinitialisation');
+            resetBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                console.log('🔄 [DEBUG] Clic sur le bouton de réinitialisation');
+                this.handleReset();
+            });
+        } else {
+            console.warn('⚠️ [DEBUG] Bouton de réinitialisation non trouvé');
         }
 
         // Bouton de planification

@@ -1,313 +1,753 @@
-/* === STYLES POUR LA GESTION DES HORAIRES === */
-
-/* Conteneur principal des horaires */
-.horaires-container {
-    background: transparent;
+/* ========================================
+   STYLES GLOBAUX
+   ======================================== */
+* {
+    margin: 0;
     padding: 0;
+    box-sizing: border-box;
 }
 
-/* En-tête de section compatible avec le thème existant */
-.horaires-container .section-header h2 {
-    color: var(--text-color, #ffffff);
+body {
+    background: #1a1a1a;
+    color: #fff;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    min-height: 100vh;
+}
+
+/* ========================================
+   HEADER ET NAVIGATION
+   ======================================== */
+.header {
+    background: linear-gradient(135deg, #1c2526 0%, #2a3b4c 100%);
+    padding: 20px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+}
+
+.back-btn {
+    display: inline-block;
+    padding: 10px 20px;
+    background: #444;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: white;
+    text-decoration: none;
+    transition: all 0.3s ease;
+    font-size: 14px;
+}
+
+.back-btn:hover {
+    background: #555;
+    box-shadow: 0 0 10px #9733EE, 0 0 5px #00D4FF;
+    transform: translateY(-2px);
+}
+
+.title-container {
+    text-align: center;
+    margin-top: 20px;
+}
+
+.gradient-title {
+    font-size: 2.5rem;
+    background: linear-gradient(135deg, #9733EE, #DA22FF);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
     margin-bottom: 10px;
-    font-size: 24px;
-    font-weight: 700;
 }
 
-.horaires-container .section-subtitle {
-    color: var(--text-secondary, #b3b3b3);
-    margin-bottom: 30px;
-    font-size: 16px;
+.subtitle {
+    color: #aaa;
+    font-size: 1rem;
 }
 
-/* Tableau des horaires */
-.horaires-table {
-    background-color: var(--surface-color, #1e1e1e);
+/* ========================================
+   CONTENEUR PRINCIPAL
+   ======================================== */
+.container {
+    max-width: 1200px;
+    margin: 40px auto;
+    padding: 0 20px;
+}
+
+/* ========================================
+   TABLE DES HORAIRES
+   ======================================== */
+.schedule-table {
+    background: #2c2c2c;
     border-radius: 12px;
     overflow: hidden;
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-shadow: 0 5px 20px rgba(0, 0, 0, 0.3);
+}
+
+table {
     width: 100%;
     border-collapse: collapse;
 }
 
-.horaires-table th {
-    background-color: var(--header-bg, #2c2c2c);
-    color: var(--text-color, #ffffff);
+thead {
+    background: linear-gradient(135deg, #2a3b4c, #1c2526);
+}
+
+th {
     padding: 15px;
     text-align: left;
-    border-bottom: 1px solid #333;
-    font-weight: 700;
-    font-size: 18px;
+    font-weight: 600;
+    font-size: 14px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
     position: relative;
 }
 
-.horaires-table td {
-    padding: 15px;
+tbody tr {
     border-bottom: 1px solid #333;
-    color: var(--text-color, #ffffff);
+    transition: background 0.3s ease;
 }
 
-/* Champs d'heure */
-.horaires-table input[type="time"] {
-    width: 90px;
-    padding: 8px;
-    background-color: #333;
-    border: none;
+tbody tr:hover {
+    background: rgba(151, 51, 238, 0.1);
+}
+
+td {
+    padding: 15px;
+    font-size: 14px;
+}
+
+td:first-child {
+    font-weight: 600;
+    color: #fff;
+    font-size: 16px;
+    letter-spacing: 0.5px;
+}
+
+/* ========================================
+   INPUTS ET CONTRÔLES
+   ======================================== */
+input[type="time"] {
+    background: #333;
+    border: 1px solid #444;
     color: white;
-    border-radius: 4px;
-    transition: background-color 0.2s;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 14px;
+    transition: all 0.3s ease;
+    cursor: pointer;
 }
 
-.horaires-table input[type="time"]:hover {
-    background-color: #444;
+input[type="time"]:focus {
+    background: #444;
+    border-color: #9733EE;
+    box-shadow: 0 0 0 2px rgba(151, 51, 238, 0.2);
+    outline: none;
 }
 
-.horaires-table input[type="time"]:focus {
-    background-color: #555;
-    outline: 2px solid var(--primary-color, #9733EE);
+input[type="time"]:hover {
+    background: #3a3a3a;
 }
 
-/* Rangée de temps (champs + boutons) */
-.time-row {
+/* Style pour les input désactivés (creuses vides) */
+input[type="time"]:disabled {
+    background: #222;
+    border-color: #333;
+    color: #666;
+    cursor: not-allowed;
+    opacity: 0.5;
+}
+
+/* ========================================
+   COLONNES DE CREUSES
+   ======================================== */
+.time-slot-group {
     display: flex;
+    gap: 10px;
     align-items: center;
-    justify-content: space-between;
-    margin-bottom: 10px;
+    position: relative;
 }
 
-.time-inputs {
+.time-separator {
+    color: #666;
+    font-weight: bold;
+}
+
+/* Groupe d'inputs avec boutons */
+.time-inputs-wrapper {
     display: flex;
     align-items: center;
     gap: 10px;
 }
 
+/* Boutons copier/coller avec design moderne */
 .action-buttons {
     display: flex;
-    gap: 6px;
+    gap: 8px;
+    margin-left: 15px;
 }
 
-/* Boutons copier/coller */
-.copy-btn, .paste-btn {
-    width: 24px;
-    height: 24px;
-    border: none;
-    border-radius: 50%;
-    background: none;
-    position: relative;
+.btn-copy, .btn-paste {
+    padding: 0;
+    background: linear-gradient(135deg, #2a2a2a, #1f1f1f);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 6px;
+    color: #aaa;
     cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    position: relative;
     overflow: hidden;
-    transition: transform 0.2s ease;
 }
 
-.copy-btn::before, .paste-btn::before {
+/* Effet de brillance au survol */
+.btn-copy::before, .btn-paste::before {
     content: '';
     position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+    transition: left 0.5s ease;
+}
+
+.btn-copy:hover::before, .btn-paste:hover::before {
+    left: 100%;
+}
+
+/* États hover et active */
+.btn-copy:hover, .btn-paste:hover {
+    background: linear-gradient(135deg, #333, #2a2a2a);
+    border-color: rgba(151, 51, 238, 0.3);
+    color: #fff;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.btn-copy:active, .btn-paste:active {
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+}
+
+/* Icônes SVG modernes et explicites */
+.btn-copy::after {
+    content: '';
+    width: 18px;
+    height: 18px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aaaaaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'%3E%3C/rect%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'%3E%3C/path%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 1;
+    transition: filter 0.3s ease;
+}
+
+.btn-paste::after {
+    content: '';
+    width: 18px;
+    height: 18px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23aaaaaa' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'%3E%3C/path%3E%3Crect x='8' y='2' width='8' height='4' rx='1' ry='1'%3E%3C/rect%3E%3Cline x1='12' y1='11' x2='12' y2='17'%3E%3C/line%3E%3Cline x1='9' y1='14' x2='15' y2='14'%3E%3C/line%3E%3C/svg%3E");
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    z-index: 1;
+    transition: filter 0.3s ease;
+}
+
+/* Changement de couleur des icônes au hover */
+.btn-copy:hover::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Crect x='9' y='9' width='13' height='13' rx='2' ry='2'%3E%3C/rect%3E%3Cpath d='M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1'%3E%3C/path%3E%3C/svg%3E");
+}
+
+.btn-paste:hover::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2'%3E%3C/path%3E%3Crect x='8' y='2' width='8' height='4' rx='1' ry='1'%3E%3C/rect%3E%3Cline x1='12' y1='11' x2='12' y2='17'%3E%3C/line%3E%3Cline x1='9' y1='14' x2='15' y2='14'%3E%3C/line%3E%3C/svg%3E");
+}
+
+/* État copié/collé avec feedback visuel */
+.btn-copy.copied, .btn-paste.pasted {
+    background: linear-gradient(135deg, rgba(151, 51, 238, 0.2), rgba(218, 34, 255, 0.2));
+    border-color: rgba(151, 51, 238, 0.5);
+    animation: pulse 0.5s ease;
+}
+
+.btn-copy.copied::after {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%239733EE' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='20 6 9 17 4 12'%3E%3C/polyline%3E%3C/svg%3E");
+}
+
+/* Animation de pulsation pour feedback */
+@keyframes pulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+    100% { transform: scale(1); }
+}
+
+/* Tooltips au survol pour clarifier l'action */
+.btn-copy:hover::after, .btn-paste:hover::after {
+    opacity: 1;
+}
+
+/* Version alternative avec texte + icône (optionnel) */
+.btn-copy.with-text, .btn-paste.with-text {
+    width: auto;
+    padding: 6px 12px;
+    gap: 6px;
+    font-size: 12px;
+    font-weight: 500;
+}
+
+.btn-copy.with-text::after, .btn-paste.with-text::after {
+    position: relative;
+    margin-left: 4px;
+}
+
+/* ========================================
+   BOUTON SAUVEGARDER
+   ======================================== */
+.save-container {
+    margin-top: 40px;
+    text-align: center;
+    padding: 20px 0;
+}
+
+.save-btn {
+    padding: 14px 35px;
+    font-size: 16px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #9733EE, #DA22FF);
+    color: white;
+    border: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 15px rgba(151, 51, 238, 0.3);
+    margin-top: 40px;
+}
+
+.save-btn:hover {
+    background: linear-gradient(135deg, #ad48ff, #e83eff);
+    box-shadow: 0 6px 20px rgba(151, 51, 238, 0.4);
+    transform: translateY(-2px);
+}
+
+.save-btn:active {
+    transform: translateY(0);
+}
+
+/* ========================================
+   TOOLTIPS
+   ======================================== */
+/* Conteneur pour le titre avec tooltip */
+.tooltip-container {
+    position: relative;
+    display: inline-block;
+}
+
+.tooltip-icon {
+    display: inline-block;
+    width: 18px;
+    height: 18px;
+    line-height: 18px;
+    background: #555;
+    border-radius: 50%;
+    color: #fff;
+    font-size: 12px;
+    font-weight: bold;
+    text-align: center;
+    cursor: help;
+    margin-left: 8px;
+    transition: background-color 0.3s ease, transform 0.2s ease;
+    vertical-align: middle;
+}
+
+.tooltip-icon:hover {
+    background: linear-gradient(135deg, #9733EE, #DA22FF);
+    transform: scale(1.1);
+}
+
+/* Tooltip positionné par rapport au conteneur parent */
+.tooltip-container .tooltip {
+    position: absolute;
+    background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+    color: #fff;
+    padding: 12px 16px;
+    border-radius: 8px;
+    font-size: 13px;
+    line-height: 1.4;
+    max-width: 280px;
+    white-space: normal;
+    z-index: 1000;
+    pointer-events: none;
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.3s ease, visibility 0.3s ease;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4), 
+                0 0 0 1px rgba(151, 51, 238, 0.2);
+    top: 50%;
+    left: calc(100% + 10px);
+    transform: translateY(-50%);
+}
+
+.tooltip::before {
+    content: '';
+    position: absolute;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 6px 8px 6px 0;
+    border-color: transparent #2c2c2c transparent transparent;
+    right: 100%;
+    top: 50%;
+    transform: translateY(-50%);
+}
+
+.tooltip.visible {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+}
+
+/* ========================================
+   MODAL DE CONFIRMATION
+   ======================================== */
+.unified-confirmation-modal {
+    position: fixed;
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #9733EE 0%, #DA22FF 100%);
-    opacity: 0.7;
-    transition: opacity 0.2s ease;
+    background: rgba(0, 0, 0, 0.7);
+    display: none;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
 }
 
-.paste-btn::before {
-    background: linear-gradient(135deg, #4CAF50 0%, #81C784 100%);
-}
-
-.copy-btn::after, .paste-btn::after {
-    content: '';
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    width: 12px;
-    height: 12px;
-    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm-1 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h7v14z"/></svg>') no-repeat center;
-    background-size: contain;
-    transform: translate(-50%, -50%);
-}
-
-.paste-btn::after {
-    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm5 18H7V7h10v14z"/></svg>') no-repeat center;
-    background-size: contain;
-}
-
-.copy-btn:hover::before, .paste-btn:hover::before {
+.unified-confirmation-modal.show {
+    display: flex;
     opacity: 1;
+    animation: fadeIn 0.3s ease forwards;
 }
 
-.copy-btn:hover, .paste-btn:hover {
-    transform: scale(1.1);
+.unified-confirmation-modal.closing {
+    animation: fadeOut 0.3s ease forwards;
 }
 
-/* Bouton de sauvegarde */
-.save-btn {
-    background: linear-gradient(135deg, var(--primary-color, #9733EE), var(--secondary-color, #DA22FF));
-    border: none;
-    color: white;
-    padding: 15px 30px;
-    border-radius: 8px;
+.modal-content {
+    background: linear-gradient(135deg, #2c2c2c, #1a1a1a);
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5),
+                0 0 0 1px rgba(151, 51, 238, 0.3);
+    max-width: 90%;
+    width: 400px;
+    animation: scaleIn 0.3s ease;
+}
+
+.modal-message {
+    color: #fff;
     font-size: 16px;
+    margin-bottom: 25px;
+    text-align: center;
+    line-height: 1.5;
+}
+
+.modal-buttons {
+    display: flex;
+    gap: 15px;
+    justify-content: center;
+}
+
+.modal-btn {
+    padding: 10px 25px;
+    border: none;
+    border-radius: 6px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    display: block;
-    margin: 30px auto;
-    min-width: 200px;
+    min-width: 80px;
 }
 
-.save-btn:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 20px rgba(151, 51, 238, 0.3);
-    background: linear-gradient(135deg, var(--secondary-color, #DA22FF), var(--primary-color, #9733EE));
-}
-
-/* Icône tooltip - reste identique */
-.tooltip-icon {
-    display: inline-block;
-    width: 16px;
-    height: 16px;
-    background-color: #555;
-    color: #fff;
-    text-align: center;
-    border-radius: 50%;
-    margin-left: 5px;
-    cursor: help;
-    font-size: 12px;
-    line-height: 16px;
-    transition: background-color 0.2s;
-    position: relative; /* Important pour le positionnement du tooltip */
-}
-
-.tooltip-icon:hover {
-    background-color: #3a3a3a;
-}
-
-/* Tooltip responsive - Version optimisée */
-.tooltip {
-    display: none;
-    position: absolute;
-    background: #333;
+.btn-confirm {
+    background: linear-gradient(135deg, #9733EE, #DA22FF);
     color: white;
-    padding: 10px 12px;
-    border-radius: 6px;
-    font-size: 13px;
-    line-height: 1.4;
-    text-align: left;
-    word-wrap: break-word;
-    z-index: 1000;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
-    white-space: normal;
+}
+
+.btn-confirm:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(151, 51, 238, 0.4);
+}
+
+.btn-cancel {
+    background: #444;
+    color: white;
+}
+
+.btn-cancel:hover {
+    background: #555;
+    transform: translateY(-2px);
+}
+
+/* ========================================
+   ANIMATIONS
+   ======================================== */
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+@keyframes fadeOut {
+    from { opacity: 1; }
+    to { opacity: 0; }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.9);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+@keyframes slideUpMobile {
+    from {
+        opacity: 0;
+        transform: translateX(-50%) translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+}
+
+/* ========================================
+   RESPONSIVE DESIGN
+   ======================================== */
+
+/* Tablettes (768px - 1024px) */
+@media screen and (max-width: 1024px) {
+    .container {
+        padding: 0 15px;
+    }
     
-    /* Positionnement par défaut - à droite de l'icône */
-    top: 50%;
-    left: calc(100% + 12px);
-    transform: translateY(-50%);
-    width: 280px;
-    max-width: calc(100vw - 40px); /* Évite le débordement */
-}
-
-.tooltip.visible {
-    display: block;
-}
-
-/* Flèche par défaut - pointe vers la gauche */
-.tooltip::after {
-    content: "";
-    position: absolute;
-    top: 50%;
-    right: 100%;
-    margin-top: -5px;
-    border-width: 5px;
-    border-style: solid;
-    border-color: transparent #333 transparent transparent;
-}
-
-/* Classes pour positionnement alternatif */
-.tooltip.tooltip-left {
-    left: auto;
-    right: calc(100% + 12px);
-}
-
-.tooltip.tooltip-left::after {
-    right: auto;
-    left: 100%;
-    border-color: transparent transparent transparent #333;
-}
-
-.tooltip.tooltip-top {
-    top: auto;
-    bottom: calc(100% + 12px);
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.tooltip.tooltip-top::after {
-    top: 100%;
-    right: auto;
-    left: 50%;
-    margin-top: 0;
-    margin-left: -5px;
-    border-color: #333 transparent transparent transparent;
-}
-
-.tooltip.tooltip-bottom {
-    top: calc(100% + 12px);
-    left: 50%;
-    transform: translateX(-50%);
-}
-
-.tooltip.tooltip-bottom::after {
-    top: auto;
-    bottom: 100%;
-    right: auto;
-    left: 50%;
-    margin-top: 0;
-    margin-left: -5px;
-    border-color: transparent transparent #333 transparent;
-}
-
-/* Responsive breakpoints */
-@media (max-width: 768px) {
+    h1 {
+        font-size: 2rem;
+    }
+    
+    table {
+        font-size: 13px;
+    }
+    
+    th, td {
+        padding: 12px;
+    }
+    
+    input[type="time"] {
+        padding: 6px 10px;
+        font-size: 13px;
+    }
+    
     .tooltip {
-        width: 240px;
+        max-width: 240px;
         font-size: 12px;
-        padding: 8px 10px;
+        padding: 10px 14px;
+        top: calc(100% + 10px) !important;
+        left: 50% !important;
+        right: auto !important;
+        transform: translateX(-50%) !important;
+    }
+    
+    .tooltip::before {
+        border-width: 0 6px 8px 6px !important;
+        border-color: transparent transparent #2c2c2c transparent !important;
+        bottom: 100% !important;
+        left: 50% !important;
+        right: auto !important;
+        top: auto !important;
+        transform: translateX(-50%) !important;
     }
 }
 
-@media (max-width: 480px) {
-    .tooltip {
-        width: 200px;
+/* Mobiles (max 768px) */
+@media screen and (max-width: 768px) {
+    .header {
+        padding: 15px;
+    }
+    
+    h1 {
+        font-size: 1.5rem;
+    }
+    
+    .subtitle {
+        font-size: 0.9rem;
+    }
+    
+    .container {
+        margin: 20px auto;
+    }
+    
+    .schedule-table {
+        overflow-x: auto;
+    }
+    
+    table {
+        min-width: 600px;
+    }
+    
+    th, td {
+        padding: 10px 8px;
+        font-size: 12px;
+    }
+    
+    input[type="time"] {
+        padding: 5px 8px;
+        font-size: 12px;
+    }
+    
+    /* Réorganisation des inputs et boutons sur mobile */
+    .time-inputs-wrapper {
+        flex-direction: column;
+        gap: 8px;
+    }
+    
+    .action-buttons {
+        margin-left: 0;
+        margin-top: 5px;
+    }
+    
+    .btn-copy, .btn-paste {
+        width: 28px;
+        height: 28px;
+        padding: 4px;
+    }
+    
+    /* Tooltip sur mobile */
+    .tooltip-container .tooltip {
+        position: fixed;
+        max-width: 90vw;
+        left: 50% !important;
+        transform: translateX(-50%) !important;
+        top: auto !important;
+        bottom: 20px !important;
+        right: auto !important;
+        font-size: 14px;
+        padding: 15px;
+        border-radius: 12px;
+    }
+    
+    .tooltip::before {
+        display: none;
+    }
+    
+    .tooltip.visible {
+        animation: slideUpMobile 0.3s ease forwards;
+    }
+    
+    .save-btn {
+        width: 100%;
+        padding: 12px;
+    }
+}
+
+/* Petits mobiles (max 480px) */
+@media screen and (max-width: 480px) {
+    h1 {
+        font-size: 1.3rem;
+    }
+    
+    .back-btn {
+        padding: 8px 16px;
+        font-size: 13px;
+    }
+    
+    th {
         font-size: 11px;
-        padding: 6px 8px;
+        padding: 8px 5px;
     }
     
-    /* Sur petit écran, forcer le tooltip en bas */
+    td {
+        font-size: 11px;
+        padding: 8px 5px;
+    }
+    
+    input[type="time"] {
+        width: 100%;
+    }
+    
     .tooltip {
-        top: calc(100% + 8px);
-        left: 50%;
-        transform: translateX(-50%);
+        max-width: calc(100vw - 40px);
+        font-size: 13px;
+        line-height: 1.5;
     }
     
-    .tooltip::after {
-        top: auto;
-        bottom: 100%;
-        right: auto;
-        left: 50%;
-        margin-top: 0;
-        margin-left: -5px;
-        border-color: transparent transparent #333 transparent;
+    .tooltip-icon {
+        width: 18px;
+        height: 18px;
+        line-height: 18px;
+        font-size: 11px;
+        margin-left: 4px;
+    }
+    
+    .modal-content {
+        width: calc(100% - 40px);
+        padding: 20px;
+    }
+    
+    .modal-message {
+        font-size: 14px;
+    }
+    
+    .modal-buttons {
+        flex-direction: column;
+        gap: 10px;
+    }
+    
+    .modal-btn {
+        width: 100%;
     }
 }
 
-/* Gestion du conteneur parent pour éviter overflow */
-.horaires-table {
-    position: relative;
-    overflow: visible;
+/* ========================================
+   UTILITAIRES
+   ======================================== */
+body.modal-open {
+    overflow: hidden;
 }
 
-.horaires-table th {
-    position: relative;
-    overflow: visible;
+.hidden {
+    display: none !important;
+}
+
+.disabled {
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+/* Amélioration de l'accessibilité */
+:focus-visible {
+    outline: 2px solid #9733EE;
+    outline-offset: 2px;
+}
+
+/* Scrollbar personnalisée */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: #1a1a1a;
+}
+
+::-webkit-scrollbar-thumb {
+    background: #444;
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: #555;
 }

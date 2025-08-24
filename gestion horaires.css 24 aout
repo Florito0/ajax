@@ -1,0 +1,313 @@
+/* === STYLES POUR LA GESTION DES HORAIRES === */
+
+/* Conteneur principal des horaires */
+.horaires-container {
+    background: transparent;
+    padding: 0;
+}
+
+/* En-tête de section compatible avec le thème existant */
+.horaires-container .section-header h2 {
+    color: var(--text-color, #ffffff);
+    margin-bottom: 10px;
+    font-size: 24px;
+    font-weight: 700;
+}
+
+.horaires-container .section-subtitle {
+    color: var(--text-secondary, #b3b3b3);
+    margin-bottom: 30px;
+    font-size: 16px;
+}
+
+/* Tableau des horaires */
+.horaires-table {
+    background-color: var(--surface-color, #1e1e1e);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.horaires-table th {
+    background-color: var(--header-bg, #2c2c2c);
+    color: var(--text-color, #ffffff);
+    padding: 15px;
+    text-align: left;
+    border-bottom: 1px solid #333;
+    font-weight: 700;
+    font-size: 18px;
+    position: relative;
+}
+
+.horaires-table td {
+    padding: 15px;
+    border-bottom: 1px solid #333;
+    color: var(--text-color, #ffffff);
+}
+
+/* Champs d'heure */
+.horaires-table input[type="time"] {
+    width: 90px;
+    padding: 8px;
+    background-color: #333;
+    border: none;
+    color: white;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+.horaires-table input[type="time"]:hover {
+    background-color: #444;
+}
+
+.horaires-table input[type="time"]:focus {
+    background-color: #555;
+    outline: 2px solid var(--primary-color, #9733EE);
+}
+
+/* Rangée de temps (champs + boutons) */
+.time-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+}
+
+.time-inputs {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.action-buttons {
+    display: flex;
+    gap: 6px;
+}
+
+/* Boutons copier/coller */
+.copy-btn, .paste-btn {
+    width: 24px;
+    height: 24px;
+    border: none;
+    border-radius: 50%;
+    background: none;
+    position: relative;
+    cursor: pointer;
+    overflow: hidden;
+    transition: transform 0.2s ease;
+}
+
+.copy-btn::before, .paste-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(135deg, #9733EE 0%, #DA22FF 100%);
+    opacity: 0.7;
+    transition: opacity 0.2s ease;
+}
+
+.paste-btn::before {
+    background: linear-gradient(135deg, #4CAF50 0%, #81C784 100%);
+}
+
+.copy-btn::after, .paste-btn::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 12px;
+    height: 12px;
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M16 1H4a2 2 0 0 0-2 2v14h2V3h12V1zm-1 4H8a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h7a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zm0 16H8V7h7v14z"/></svg>') no-repeat center;
+    background-size: contain;
+    transform: translate(-50%, -50%);
+}
+
+.paste-btn::after {
+    background: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="white"><path d="M19 3h-4.18C14.4 1.84 13.3 1 12 1c-1.3 0-2.4.84-2.82 2H5c-1.1 0-2 .9-2 2v16c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V5c0-1.1-.9-2-2-2zm-7 0c.55 0 1 .45 1 1s-.45 1-1 1-1-.45-1-1 .45-1 1-1zm5 18H7V7h10v14z"/></svg>') no-repeat center;
+    background-size: contain;
+}
+
+.copy-btn:hover::before, .paste-btn:hover::before {
+    opacity: 1;
+}
+
+.copy-btn:hover, .paste-btn:hover {
+    transform: scale(1.1);
+}
+
+/* Bouton de sauvegarde */
+.save-btn {
+    background: linear-gradient(135deg, var(--primary-color, #9733EE), var(--secondary-color, #DA22FF));
+    border: none;
+    color: white;
+    padding: 15px 30px;
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: block;
+    margin: 30px auto;
+    min-width: 200px;
+}
+
+.save-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 20px rgba(151, 51, 238, 0.3);
+    background: linear-gradient(135deg, var(--secondary-color, #DA22FF), var(--primary-color, #9733EE));
+}
+
+/* Icône tooltip - reste identique */
+.tooltip-icon {
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    background-color: #555;
+    color: #fff;
+    text-align: center;
+    border-radius: 50%;
+    margin-left: 5px;
+    cursor: help;
+    font-size: 12px;
+    line-height: 16px;
+    transition: background-color 0.2s;
+    position: relative; /* Important pour le positionnement du tooltip */
+}
+
+.tooltip-icon:hover {
+    background-color: #3a3a3a;
+}
+
+/* Tooltip responsive - Version optimisée */
+.tooltip {
+    display: none;
+    position: absolute;
+    background: #333;
+    color: white;
+    padding: 10px 12px;
+    border-radius: 6px;
+    font-size: 13px;
+    line-height: 1.4;
+    text-align: left;
+    word-wrap: break-word;
+    z-index: 1000;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+    white-space: normal;
+    
+    /* Positionnement par défaut - à droite de l'icône */
+    top: 50%;
+    left: calc(100% + 12px);
+    transform: translateY(-50%);
+    width: 280px;
+    max-width: calc(100vw - 40px); /* Évite le débordement */
+}
+
+.tooltip.visible {
+    display: block;
+}
+
+/* Flèche par défaut - pointe vers la gauche */
+.tooltip::after {
+    content: "";
+    position: absolute;
+    top: 50%;
+    right: 100%;
+    margin-top: -5px;
+    border-width: 5px;
+    border-style: solid;
+    border-color: transparent #333 transparent transparent;
+}
+
+/* Classes pour positionnement alternatif */
+.tooltip.tooltip-left {
+    left: auto;
+    right: calc(100% + 12px);
+}
+
+.tooltip.tooltip-left::after {
+    right: auto;
+    left: 100%;
+    border-color: transparent transparent transparent #333;
+}
+
+.tooltip.tooltip-top {
+    top: auto;
+    bottom: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tooltip.tooltip-top::after {
+    top: 100%;
+    right: auto;
+    left: 50%;
+    margin-top: 0;
+    margin-left: -5px;
+    border-color: #333 transparent transparent transparent;
+}
+
+.tooltip.tooltip-bottom {
+    top: calc(100% + 12px);
+    left: 50%;
+    transform: translateX(-50%);
+}
+
+.tooltip.tooltip-bottom::after {
+    top: auto;
+    bottom: 100%;
+    right: auto;
+    left: 50%;
+    margin-top: 0;
+    margin-left: -5px;
+    border-color: transparent transparent #333 transparent;
+}
+
+/* Responsive breakpoints */
+@media (max-width: 768px) {
+    .tooltip {
+        width: 240px;
+        font-size: 12px;
+        padding: 8px 10px;
+    }
+}
+
+@media (max-width: 480px) {
+    .tooltip {
+        width: 200px;
+        font-size: 11px;
+        padding: 6px 8px;
+    }
+    
+    /* Sur petit écran, forcer le tooltip en bas */
+    .tooltip {
+        top: calc(100% + 8px);
+        left: 50%;
+        transform: translateX(-50%);
+    }
+    
+    .tooltip::after {
+        top: auto;
+        bottom: 100%;
+        right: auto;
+        left: 50%;
+        margin-top: 0;
+        margin-left: -5px;
+        border-color: transparent transparent #333 transparent;
+    }
+}
+
+/* Gestion du conteneur parent pour éviter overflow */
+.horaires-table {
+    position: relative;
+    overflow: visible;
+}
+
+.horaires-table th {
+    position: relative;
+    overflow: visible;
+}

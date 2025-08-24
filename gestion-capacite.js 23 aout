@@ -356,6 +356,12 @@ class GestionCapacite {
     }
 
     async updateCapacity() {
+        const confirmed = await this.showConfirmation('Êtes-vous sûr de vouloir modifier la capacité d\'accueil ?');
+
+    if (!confirmed) {
+        // Si l'utilisateur clique sur "Non" ou ferme la modale, on arrête la fonction ici.
+        return; 
+    }
         const maxInput = document.getElementById('max-capacity-input');
         const updateBtn = document.getElementById('update-capacity-btn');
         
@@ -371,20 +377,23 @@ class GestionCapacite {
         const success = await this.saveData();
         
         if (updateBtn) {
-            if (success) {
-                updateBtn.style.background = 'linear-gradient(to right, #33cc33, #66ff66)';
-                setTimeout(() => {
-                    updateBtn.style.background = 'linear-gradient(to right, #9733EE, #DA22FF)';
-                }, 500);
-            } else {
-                updateBtn.style.background = 'linear-gradient(to right, #ff4444, #ff6666)';
-                setTimeout(() => {
-                    updateBtn.style.background = 'linear-gradient(to right, #9733EE, #DA22FF)';
-                }, 500);
-            }
+        if (success) {
+            updateBtn.style.background = 'linear-gradient(to right, #33cc33, #66ff66)';
+            setTimeout(() => {
+                updateBtn.style.background = 'linear-gradient(to right, #9733EE, #DA22FF)';
+            }, 500);
+            // On peut ajouter une alerte de succès ici si on le souhaite
+            this.showAlert('Capacité d\'accueil mise à jour !', 'success');
+        } else {
+            updateBtn.style.background = 'linear-gradient(to right, #ff4444, #ff6666)';
+            setTimeout(() => {
+                updateBtn.style.background = 'linear-gradient(to right, #9733EE, #DA22FF)';
+            }, 500);
+            // On peut ajouter une alerte d'erreur ici si on le souhaite
+            this.showAlert('Erreur lors de la mise à jour.', 'error');
         }
     }
-
+}
     // Créer une modale de confirmation avec styling inline
     showConfirmation(message) {
         return new Promise((resolve) => {
@@ -392,69 +401,80 @@ class GestionCapacite {
             
             // Utiliser du styling inline pour éviter les conflits CSS
             const modalHtml = `
-                <div style="
-                    position: fixed;
-                    top: 0;
-                    left: 0;
-                    width: 100%;
-                    height: 100%;
-                    background: rgba(0, 0, 0, 0.7);
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    z-index: 10000;
-                    font-family: Arial, sans-serif;
-                " id="dynamicResetModal">
-                    <div style="
-                        background-color: #2c2c2c;
-                        border-radius: 8px;
-                        padding: 30px;
-                        width: 90%;
-                        max-width: 400px;
-                        text-align: center;
-                        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.8);
-                        border: 1px solid #444;
-                    ">
-                        <p style="
-                            font-size: 16px;
-                            margin-bottom: 25px;
-                            color: #ffffff;
-                            line-height: 1.4;
-                            margin-top: 0;
-                        ">${message}</p>
-                        <div style="
-                            display: flex;
-                            justify-content: center;
-                            gap: 15px;
-                        ">
-                            <button id="confirm-yes" style="
-                                padding: 12px 25px;
-                                border: none;
-                                border-radius: 6px;
-                                font-size: 14px;
-                                font-weight: 600;
-                                cursor: pointer;
-                                background: linear-gradient(to right, #ff4444, #ff6666);
-                                color: white;
-                                transition: all 0.2s ease;
-                                min-width: 80px;
-                            " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Oui</button>
-                            <button id="confirm-no" style="
-                                padding: 12px 25px;
-                                border: none;
-                                border-radius: 6px;
-                                font-size: 14px;
-                                font-weight: 600;
-                                cursor: pointer;
-                                background: linear-gradient(to right, #666, #888);
-                                color: white;
-                                transition: all 0.2s ease;
-                                min-width: 80px;
-                            " onmouseover="this.style.opacity='0.9'" onmouseout="this.style.opacity='1'">Non</button>
-                        </div>
-                    </div>
-                </div>
-            `;
+    <div style="
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0, 0, 0, 0.6);
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        z-index: 10000;
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    " id="dynamicResetModal">
+        <div style="
+            background: rgba(25, 25, 25, 0.7);
+            backdrop-filter: blur(10px);
+            -webkit-backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+            padding: 30px;
+            width: 90%;
+            max-width: 450px;
+            text-align: center;
+        ">
+            <p style="
+                font-size: 18px;
+                margin-bottom: 25px;
+                color: #f0f0f0;
+                line-height: 1.5;
+                margin-top: 0;
+            ">${message}</p>
+            <div style="
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+            ">
+                <button id="confirm-yes" style="
+                    /* AJOUT DE !important pour forcer le style */
+                    background: linear-gradient(to right, #9733EE, #DA22FF) !important;
+                    color: white !important;
+
+                    box-shadow: 0 4px 15px rgba(151, 51, 238, 0.3);
+                    padding: 12px 25px;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    min-width: 100px;
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 6px 20px rgba(151, 51, 238, 0.5)';"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 15px rgba(151, 51, 238, 0.3)';">Oui</button>
+                
+                <button id="confirm-no" style="
+                    /* AJOUT DE !important pour forcer le style */
+                    background: #444 !important;
+                    color: white !important;
+
+                    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+                    padding: 12px 25px;
+                    border: none;
+                    border-radius: 8px;
+                    font-size: 16px;
+                    font-weight: 600;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                    min-width: 100px;
+                " onmouseover="this.style.transform='translateY(-2px)'; this.style.background='#555';"
+                  onmouseout="this.style.transform='translateY(0)'; this.style.background='#444';">Non</button>
+            </div>
+        </div>
+    </div>
+`;
             
             document.body.insertAdjacentHTML('beforeend', modalHtml);
             const modal = document.querySelector('#dynamicResetModal');
@@ -629,61 +649,69 @@ class GestionCapacite {
     if (!scheduleSection) return;
 
     const days = ['Lundi', 'Mardi', 'Mercredi', 'Jeudi', 'Vendredi', 'Samedi', 'Dimanche'];
-    
     let html = `
-        <div class="schedule-info">
-            <p class="info-text">
+        <div class="schedule-header">
+            <h3>Planifier la réinitialisation automatique</h3>
+            <p class="schedule-info">
                 <i class="fas fa-info-circle"></i>
-                <strong>Mode horaire:</strong> La réinitialisation se déclenchera à l'heure pile (ex: 12h00, 13h00, etc.)
+                Mode horaire: La réinitialisation se déclenchera à l'heure pile (ex: 12h00, 13h00, etc.)
             </p>
         </div>
     `;
-    
+
     days.forEach(day => {
         const dayKey = day.toLowerCase();
         const isEnabled = this.schedule[dayKey] && this.schedule[dayKey] !== 'Désactivé';
         const time = isEnabled ? this.schedule[dayKey] : '12:00';
-        
-        // Extraire seulement l'heure (ignorer les minutes)
         const hourOnly = time.split(':')[0];
-        
+
+        // --- PARTIE MODIFIÉE CI-DESSOUS ---
         html += `
             <div class="day-schedule">
                 <div class="day-header ${isEnabled ? 'active' : ''}">
-                    <input type="checkbox" class="toggle" id="${dayKey}-toggle" ${isEnabled ? 'checked' : ''}>
+                    <input type="checkbox" class="toggle" id="${dayKey}-toggle" data-day="${dayKey}" ${isEnabled ? 'checked' : ''}>
                     <span class="day-name">${day}</span>
                     <span class="status ${isEnabled ? 'active' : 'inactive'}">${isEnabled ? 'Activé' : 'Désactivé'}</span>
                     <div class="time-selector">
-                        <select class="hour-select" ${!isEnabled ? 'disabled' : ''}>
+                        <select class="hour-select" data-day="${dayKey}" ${!isEnabled ? 'disabled' : ''}>
                             ${this.generateHourOptions(hourOnly)}
                         </select>
-                        <span class="hour-suffix">h00</span>
-                    </div>
+                        </div>
                 </div>
             </div>
         `;
+        // --- FIN DE LA PARTIE MODIFIÉE ---
     });
 
     html += `
-        <button class="update-btn" id="save-schedule-btn" data-tooltip="Enregistrer la planification de réinitialisation">
-            <i class="fas fa-save"></i> Enregistrer la planification
-        </button>
-        <button class="back-btn" id="back-to-main-btn">
-            <i class="fas fa-arrow-left"></i> Retour à Gestion Capacité
-        </button>
+        <div class="schedule-actions">
+            <button class="update-btn" id="save-schedule-btn" data-tooltip="Enregistrer la planification de réinitialisation">
+                <i class="fas fa-save"></i> Enregistrer la planification
+            </button>
+            <button class="back-btn" id="back-to-main-btn">
+                <i class="fas fa-arrow-left"></i> Retour à Gestion Capacité
+            </button>
+        </div>
     `;
 
     scheduleSection.innerHTML = html;
-    this.attachScheduleListeners();
-}
+    this.attachScheduleListeners();}
 
 // Nouvelle méthode pour générer les options d'heures
 generateHourOptions(selectedHour = '12') {
     let options = '';
     for (let hour = 0; hour < 24; hour++) {
+        // Formate l'heure sur deux chiffres (ex: "09")
         const hourStr = hour.toString().padStart(2, '0');
+        
+        // Crée le texte à afficher (ex: "09h00")
+        const displayFormat = `${hourStr}h00`; 
+
+        // Détermine si cette option est sélectionnée
         const selected = hourStr === selectedHour ? 'selected' : '';
-         options += `<option value="${hourStr}" ${selected}>${hourStr}</option>`;
+        
+        // La 'value' reste "09" mais le texte affiché est "09h00"
+        options += `<option value="${hourStr}" ${selected}>${displayFormat}</option>`;
     }
     return options;
 }

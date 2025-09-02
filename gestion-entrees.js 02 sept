@@ -380,11 +380,10 @@ showMaxEntriesEditor(input) {
     // Supprimer tout éditeur déjà ouvert pour éviter les doublons
     const oldEditor = document.querySelector('.max-entries-editor');
     if (oldEditor) oldEditor.remove();
-
+    
     const editor = document.createElement('div');
     editor.className = 'max-entries-editor';
-
-    // HTML qui correspond au design simple que vous voulez
+    
     editor.innerHTML = `
         <h4>Définir Max. Entrée par Qt. bouteilles</h4>
         <div class="editor-content">
@@ -396,32 +395,31 @@ showMaxEntriesEditor(input) {
             <button type="button" class="save-max-btn">OK</button>
         </div>
     `;
-
-    // **LA CLÉ DU POSITIONNEMENT**
-    // On ajoute l'éditeur à l'intérieur du parent de l'input
-    // et on s'assure que ce parent est bien un référent de positionnement.
+    
     const inputParent = input.parentElement;
     inputParent.style.position = 'relative'; 
     inputParent.appendChild(editor);
-
+    
     const inputsContainer = editor.querySelector('.max-entries-inputs');
-
-    // Charger les données existantes de l'input vers l'éditeur
+    
+    // Charger les données existantes
     try {
         const maxEntries = JSON.parse(input.dataset.maxEntries || '{}');
         if (Object.keys(maxEntries).length > 0) {
             for (const [qty, max] of Object.entries(maxEntries)) {
-                this.addMaxEntryInput(inputsContainer, qty, max);
+                this.addMaxEntryInput(inputsContainer, parseInt(qty), max);
             }
         }
-    } catch (e) { console.error("Données maxEntries invalides:", e); }
-
-    // S'assurer qu'il y a au moins une ligne si aucune donnée n'est chargée
+    } catch (e) { 
+        console.error("Données maxEntries invalides:", e); 
+    }
+    
+    // S'assurer qu'il y a au moins une ligne
     if (inputsContainer.children.length === 0) {
         this.addMaxEntryInput(inputsContainer, 1, '');
     }
-
-    // Attacher les événements aux nouveaux boutons
+    
+    // Attacher les événements
     editor.querySelector('.add-max-btn').addEventListener('click', () => this.addMaxEntryInput(inputsContainer));
     editor.querySelector('.cancel-btn').addEventListener('click', () => editor.remove());
     editor.querySelector('.save-max-btn').addEventListener('click', () => this.saveMaxEntries(editor, input));
@@ -431,14 +429,42 @@ addMaxEntryInput(container, qty = null, max = '') {
     const existingQtys = Array.from(container.querySelectorAll('.max-entry-input'))
         .map(input => parseInt(input.dataset.qty));
     const nextQty = qty ? qty : Math.max(0, ...existingQtys) + 1;
-
+    
     const row = document.createElement('div');
     row.className = 'max-entry-row';
+    
+    // Vérifier si c'est la première ligne (1 bouteille)
+    const isFirstRow = nextQty === 1 && container.children.length === 0;
+    
     row.innerHTML = `
         <span>${nextQty} bouteille${nextQty > 1 ? 's' : ''}:</span>
-        <input type="number" min="1" class="max-entry-input" data-qty="${nextQty}" value="${max}" placeholder="Entrées">
+        <div class="input-with-delete">
+            ${!isFirstRow ? '<button type="button" class="delete-max-btn" title="Supprimer cette ligne">🗑️</button>' : ''}
+            <input type="number" min="1" class="max-entry-input" data-qty="${nextQty}" value="${max}" placeholder="Entrées">
+        </div>
     `;
+    
     container.appendChild(row);
+    
+    // Attacher l'événement de suppression si le bouton existe
+    if (!isFirstRow) {
+        const deleteBtn = row.querySelector('.delete-max-btn');
+        deleteBtn.addEventListener('click', () => this.removeMaxEntryInput(row, container));
+    }
+}
+
+removeMaxEntryInput(row, container) {
+    // Ne pas permettre de supprimer s'il ne reste qu'une ligne
+    if (container.children.length <= 1) {
+        return;
+    }
+    
+    row.remove();
+    
+    // Si on a supprimé toutes les lignes, en recréer une par défaut
+    if (container.children.length === 0) {
+        this.addMaxEntryInput(container, 1, '');
+    }
 }
 
 saveMaxEntries(editor, targetInput) {

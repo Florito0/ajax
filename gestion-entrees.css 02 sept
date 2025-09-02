@@ -405,9 +405,9 @@
     gap: 10px;
 }
 
-#gestion-tickets-entree .category-section div, 
-#gestion-tickets-entree .name-section div, 
-#gestion-tickets-entree .details-row div {
+#gestion-tickets-entree .pure-row .category-section > div, 
+#gestion-tickets-entree .pure-row .name-section > div, 
+#gestion-tickets-entree .pure-row .details-row > div {
     display: flex;
     flex-direction: column;
 }
@@ -749,41 +749,24 @@
 }
 
 /* Style de l'éditeur de maximum d'entrées (fenêtre pop-up) */
+/* REMPLACEZ VOTRE BLOC .max-entries-editor ACTUEL PAR CELUI-CI */
+
 .max-entries-editor {
     position: absolute;
+    bottom: calc(100% + 5px); /* Se positionne AU-DESSUS par défaut */
+    left: 0;
+    
     background: #333;
     color: #fff;
     padding: 15px;
     border-radius: 8px;
     z-index: 1001;
     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
-    width: 300px;
+    width: 300px; /* Largeur fixe pour un design maîtrisé */
     border: 1px solid #555;
     display: flex;
     flex-direction: column;
     gap: 12px;
-    
-    /* NOUVELLES RÈGLES DE POSITIONNEMENT */
-    top: calc(100% + 5px); /* Se positionne juste sous le champ */
-    left: 0;
-    right: auto;
-}
-
-/* RÈGLE CRUCIALE : Le champ parent doit être en position relative */
-.pure-max-entries {
-    position: relative !important;
-}
-
-/* Ajustement si l'éditeur sort de l'écran à droite */
-.max-entries-editor.position-right {
-    left: auto;
-    right: 0;
-}
-
-/* Ajustement si l'éditeur sort de l'écran en bas */
-.max-entries-editor.position-top {
-    top: auto;
-    bottom: calc(100% + 5px);
 }
 
 .max-entries-editor h4 {
@@ -795,14 +778,13 @@
     padding-bottom: 10px;
 }
 
-/* Conteneur des champs de saisie avec défilement amélioré */
 .max-entries-editor .editor-content {
-    max-height: 160px; /* Hauteur maximale avant apparition du scroll */
-    overflow-y: auto;  /* Scroll vertical uniquement si nécessaire */
-    padding-right: 5px; /* Petit espace pour ne pas coller à la barre de scroll */
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 5px; /* Espace pour la barre de scroll */
 }
 
-/* Style des lignes de saisie */
+/* Style de chaque ligne dans l'éditeur (label + input) */
 .max-entries-editor .max-entry-row {
     display: flex;
     justify-content: space-between;
@@ -815,33 +797,27 @@
     margin-right: 10px;
 }
 
-/* Style des champs de saisie */
-.max-entries-editor input {
-    width: 80px; /* Largeur fixe */
-    padding: 8px;
-    background-color: #444;
+/* Style des champs de saisie DANS l'éditeur */
+#gestion-tickets-entree .max-entries-editor input {
+    width: 80px;
+    height: 20px;
+    padding: 6px 8px;
+    background-color: #444; /* Couleur spécifique */
     border: 1px solid #555;
     color: white;
     border-radius: 4px;
     font-size: 14px;
     text-align: center;
 }
-.max-entries-editor input:focus {
-    outline: none;
-    border-color: #9733EE;
-    box-shadow: 0 0 5px rgba(151, 51, 238, 0.5);
-}
 
-/* Conteneur des boutons */
 .max-entries-editor .editor-footer {
     display: flex;
-    justify-content: flex-end; /* Aligner à droite */
+    justify-content: flex-end;
     gap: 10px;
     padding-top: 10px;
     border-top: 1px solid #444;
 }
 
-/* Style des boutons d'action */
 .max-entries-editor .editor-footer button {
     border: none;
     border-radius: 5px;
@@ -852,7 +828,6 @@
     transition: all 0.2s;
 }
 
-/* Bouton Annuler/Ajouter (style secondaire) */
 .max-entries-editor .cancel-btn,
 .max-entries-editor .add-max-btn {
     background-color: #555;
@@ -864,13 +839,19 @@
     color: #fff;
 }
 
-/* Bouton OK (style principal) */
 .max-entries-editor .save-max-btn {
     background: linear-gradient(to right, #9733EE, #DA22FF);
     color: white;
 }
-.max-entries-editor .save-max-btn:hover {
-    box-shadow: 0 0 8px rgba(218, 34, 255, 0.7);
+
+/* Classes de repositionnement pour le JS */
+.max-entries-editor.position-top-fallback {
+    bottom: auto;
+    top: calc(100% + 5px);
+}
+.max-entries-editor.position-right-fallback {
+    left: auto;
+    right: 0;
 }
 
 @media (max-width: 768px) {

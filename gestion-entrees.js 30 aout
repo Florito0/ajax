@@ -275,7 +275,6 @@ class GestionEntrees {
 
         this.pureContainer.appendChild(pureDiv);
         this.bindPureEvents(pureDiv);
-        this.addDragEvents(pureDiv);
     }
 
     bindPureEvents(pureDiv) {
@@ -302,7 +301,6 @@ class GestionEntrees {
         
         // Réinitialiser les événements
         this.bindPureEvents(newRow);
-        this.addDragEvents(newRow);
         
         this.pureContainer.appendChild(newRow);
     }
@@ -378,133 +376,95 @@ class GestionEntrees {
 
     // --- GESTION DE L'ÉDITEUR MAX ENTRÉES ---
 
-    showMaxEntriesEditor(input) {
-        let editor = input.parentElement.querySelector('.max-entries-editor');
-        
-        if (!editor) {
-            editor = document.createElement('div');
-            editor.className = 'max-entries-editor';
-            editor.innerHTML = `
-                <label>Définir Max. Entrée par Qt. bouteilles:</label>
-                <div id="max-entries-inputs">
-                    <div class="max-entry-row">1 bouteille: <input type="number" min="1" class="max-entry-input" data-qty="1"></div>
-                    <div class="max-entry-row">2 bouteilles: <input type="number" min="1" class="max-entry-input" data-qty="2"></div>
-                </div>
-                <div class="editor-buttons">
-                    <button type="button" class="add-max-btn">+ Ajouter</button>
-                    <button type="button" class="save-max-btn">OK</button>
-                </div>
-            `;
-            
-            input.parentElement.appendChild(editor);
-            this.positionEditor(editor, input);
-            
-            // Événements
-            editor.querySelector('.add-max-btn').addEventListener('click', () => this.addMaxEntryInput(editor));
-            editor.querySelector('.save-max-btn').addEventListener('click', () => this.saveMaxEntries(editor));
+showMaxEntriesEditor(input) {
+    // Supprimer tout éditeur déjà ouvert pour éviter les doublons
+    const oldEditor = document.querySelector('.max-entries-editor');
+    if (oldEditor) oldEditor.remove();
 
-            // Charger les données existantes
-            if (input.dataset.maxEntries) {
-                try {
-                    const maxEntries = JSON.parse(input.dataset.maxEntries);
-                    const inputsContainer = editor.querySelector('#max-entries-inputs');
-                    inputsContainer.innerHTML = '';
-                    
-                    for (const [qty, max] of Object.entries(maxEntries)) {
-                        const div = document.createElement('div');
-                        div.className = 'max-entry-row';
-                        div.innerHTML = `${qty} bouteilles: <input type="number" min="1" class="max-entry-input" data-qty="${qty}" value="${max}">`;
-                        inputsContainer.appendChild(div);
-                    }
-                } catch (error) {
-                    console.error('Erreur lors du parsing des max entries:', error);
-                }
+    const editor = document.createElement('div');
+    editor.className = 'max-entries-editor';
+
+    // HTML qui correspond au design simple que vous voulez
+    editor.innerHTML = `
+        <h4>Définir Max. Entrée par Qt. bouteilles</h4>
+        <div class="editor-content">
+            <div class="max-entries-inputs"></div>
+        </div>
+        <div class="editor-footer">
+            <button type="button" class="add-max-btn">+ Ajouter</button>
+            <button type="button" class="cancel-btn">Annuler</button>
+            <button type="button" class="save-max-btn">OK</button>
+        </div>
+    `;
+
+    // **LA CLÉ DU POSITIONNEMENT**
+    // On ajoute l'éditeur à l'intérieur du parent de l'input
+    // et on s'assure que ce parent est bien un référent de positionnement.
+    const inputParent = input.parentElement;
+    inputParent.style.position = 'relative'; 
+    inputParent.appendChild(editor);
+
+    const inputsContainer = editor.querySelector('.max-entries-inputs');
+
+    // Charger les données existantes de l'input vers l'éditeur
+    try {
+        const maxEntries = JSON.parse(input.dataset.maxEntries || '{}');
+        if (Object.keys(maxEntries).length > 0) {
+            for (const [qty, max] of Object.entries(maxEntries)) {
+                this.addMaxEntryInput(inputsContainer, qty, max);
             }
         }
-        
-        editor.style.display = editor.style.display === 'none' ? 'block' : 'none';
+    } catch (e) { console.error("Données maxEntries invalides:", e); }
+
+    // S'assurer qu'il y a au moins une ligne si aucune donnée n'est chargée
+    if (inputsContainer.children.length === 0) {
+        this.addMaxEntryInput(inputsContainer, 1, '');
     }
 
-    positionEditor(editor, input) {
-    // Le parent qui a "position: relative"
-    const parentContainer = input.offsetParent;
-
-    if (!parentContainer) {
-        console.error("Le conteneur parent relatif est introuvable. Assurez-vous que le CSS est correct.");
-        return;
-    }
-
-    // Obtenir les positions par rapport à la fenêtre (viewport)
-    const inputRect = input.getBoundingClientRect();
-    const parentRect = parentContainer.getBoundingClientRect();
-
-    // Calculer la position de l'éditeur PAR RAPPORT au parent relatif
-    // top: position du bas de l'input - position du haut du parent + un petit espace
-    const topPosition = inputRect.bottom - parentRect.top + 5; 
-    
-    // left: position de gauche de l'input - position de gauche du parent
-    const leftPosition = inputRect.left - parentRect.left;
-
-    // Appliquer les styles
-    editor.style.position = 'absolute';
-    editor.style.top = `${topPosition}px`;
-    editor.style.left = `${leftPosition}px`;
-    editor.style.zIndex = '1001'; // Un z-index un peu plus élevé pour être sûr
-
-    // --- Vérification pour ne pas sortir de l'écran (bonus) ---
-    // Cette partie s'assure que si l'éditeur est trop bas, il se place au-dessus
-    setTimeout(() => {
-        const editorRect = editor.getBoundingClientRect();
-        if (editorRect.bottom > window.innerHeight) {
-            // Se positionner au-dessus de l'input au lieu d'en-dessous
-            const topPositionAbove = inputRect.top - parentRect.top - editorRect.height - 5;
-            editor.style.top = `${topPositionAbove}px`;
-        }
-    }, 0);
+    // Attacher les événements aux nouveaux boutons
+    editor.querySelector('.add-max-btn').addEventListener('click', () => this.addMaxEntryInput(inputsContainer));
+    editor.querySelector('.cancel-btn').addEventListener('click', () => editor.remove());
+    editor.querySelector('.save-max-btn').addEventListener('click', () => this.saveMaxEntries(editor, input));
 }
 
-    addMaxEntryInput(editor) {
-        const inputsContainer = editor.querySelector('#max-entries-inputs');
-        const existingQtys = Array.from(inputsContainer.querySelectorAll('.max-entry-input'))
-            .map(input => parseInt(input.dataset.qty));
-        const nextQty = Math.max(...existingQtys, 0) + 1;
-        
-        const div = document.createElement('div');
-        div.className = 'max-entry-row';
-        div.innerHTML = `${nextQty} bouteilles: <input type="number" min="1" class="max-entry-input" data-qty="${nextQty}">`;
-        inputsContainer.appendChild(div);
-    }
+addMaxEntryInput(container, qty = null, max = '') {
+    const existingQtys = Array.from(container.querySelectorAll('.max-entry-input'))
+        .map(input => parseInt(input.dataset.qty));
+    const nextQty = qty ? qty : Math.max(0, ...existingQtys) + 1;
 
-    saveMaxEntries(editor) {
-        const inputs = editor.querySelectorAll('.max-entry-input');
-        const maxEntries = {};
-        
-        inputs.forEach(input => {
-            const value = parseInt(input.value);
-            if (!isNaN(value) && value >= 1) {
-                maxEntries[input.dataset.qty] = value;
-            }
-        });
+    const row = document.createElement('div');
+    row.className = 'max-entry-row';
+    row.innerHTML = `
+        <span>${nextQty} bouteille${nextQty > 1 ? 's' : ''}:</span>
+        <input type="number" min="1" class="max-entry-input" data-qty="${nextQty}" value="${max}" placeholder="Entrées">
+    `;
+    container.appendChild(row);
+}
 
-        const inputField = editor.parentElement.querySelector('.pure-max-entries');
-        
-        try {
-            inputField.dataset.maxEntries = JSON.stringify(maxEntries);
-            
-            if (Object.keys(maxEntries).length > 0) {
-                inputField.value = Object.entries(maxEntries)
-                    .map(([qty, max]) => `${qty}=${max}`)
-                    .join(', ');
-            } else {
-                inputField.value = 'Cliquez pour définir';
-            }
-        } catch (error) {
-            console.error('Erreur lors de la sauvegarde des max entries:', error);
-            inputField.value = 'Erreur – Cliquez pour définir';
+saveMaxEntries(editor, targetInput) {
+    const inputs = editor.querySelectorAll('.max-entry-input');
+    const maxEntries = {};
+    
+    inputs.forEach(input => {
+        const qty = parseInt(input.dataset.qty);
+        const max = parseInt(input.value);
+        if (!isNaN(qty) && !isNaN(max) && max >= 1) {
+            maxEntries[qty] = max;
         }
-        
-        editor.style.display = 'none';
+    });
+
+    try {
+        targetInput.dataset.maxEntries = JSON.stringify(maxEntries);
+        targetInput.value = Object.entries(maxEntries)
+            .map(([qty, max]) => `${qty}=${max}`)
+            .join(', ') || 'Cliquez pour définir';
+    } catch (e) {
+        console.error('Erreur de sauvegarde maxEntries:', e);
+        targetInput.value = 'Erreur';
     }
+    
+    editor.remove(); // Ferme l'éditeur après avoir sauvegardé
+}
 
     // --- DRAG AND DROP ---
 
@@ -675,15 +635,15 @@ class GestionEntrees {
     // --- SAUVEGARDE ---
 
     async savePrestation() {
-         if (!confirm('Souhaitez-vous enregistrer les modifications ?')) {
+    if (!confirm('Souhaitez-vous enregistrer les modifications ?')) {
         return;
     }
 
-    // CORRECTION ICI - Construire correctement le tableau
+    // Construire correctement le tableau
     const daysCheckboxes = document.querySelectorAll('input[name="days"]:checked');
     const days = Array.from(daysCheckboxes).map(checkbox => checkbox.value);
     
-    console.log('Days avant envoi:', days); // Pour déboguer
+    console.log('Days avant envoi:', days);
     
     let errors = [];
 
@@ -694,41 +654,51 @@ class GestionEntrees {
         this.daysCheckboxes.classList.add('error');
     }
 
-        // Validation des sections
-        const accessValidation = this.validateAccessSoiree();
-        errors = [...errors, ...accessValidation.errors];
+    // Validation des sections
+    const accessValidation = this.validateAccessSoiree();
+    errors = [...errors, ...accessValidation.errors];
 
-        const { errors: pureErrors, hasValidRow: isPureValid } = this.validatePureSoiree();
-        errors = [...errors, ...pureErrors];
+    const { errors: pureErrors, hasValidRow: isPureValid } = this.validatePureSoiree();
+    errors = [...errors, ...pureErrors];
 
-        // Vérifier qu'au moins une section est complète
-        if (!accessValidation.isValid && !isPureValid) {
-            errors.push('Veuillez remplir au moins une section complète : "Les entrées" ou "Les entrées avec bouteille".');
-        }
-
-        if (errors.length > 0) {
-            alert(errors.join('\n'));
-            return;
-        }
-
-        // Construire l'objet prestation
-        const prestation = {
-            days,
-            presentationLow: this.sanitizeInput(this.accessPresentationLow.value.trim()),
-            presentationNormal: this.sanitizeInput(this.accessPresentationNormal.value.trim()),
-            presentationAlcohol: this.sanitizeInput(this.accessPresentationAlcohol.value.trim()),
-            presentationSoft: this.sanitizeInput(this.accessPresentationSoft.value.trim()),
-            price: parseFloat(this.accessPrice.value) || 0,
-            sex: this.accessSex.value,
-            pureItems: this.buildPureItems()
-        };
-         console.log('Prestation avant envoi:', prestation);
-
-        const success = await this.saveData(prestation);
-        if (success) {
-            this.resetForm();
-        }
+    // Vérifier qu'au moins une section est complète
+    if (!accessValidation.isValid && !isPureValid) {
+        errors.push('Veuillez remplir au moins une section complète : "Les entrées" ou "Les entrées avec bouteille".');
     }
+
+    if (errors.length > 0) {
+        alert(errors.join('\n'));
+        return;
+    }
+
+    // Construire l'objet prestation
+    const prestation = {
+        days,
+        presentationLow: this.sanitizeInput(this.accessPresentationLow.value.trim()),
+        presentationNormal: this.sanitizeInput(this.accessPresentationNormal.value.trim()),
+        presentationAlcohol: this.sanitizeInput(this.accessPresentationAlcohol.value.trim()),
+        presentationSoft: this.sanitizeInput(this.accessPresentationSoft.value.trim()),
+        price: parseFloat(this.accessPrice.value) || 0,
+        sex: this.accessSex.value,
+        pureItems: this.buildPureItems()
+    };
+    
+    console.log('Prestation avant envoi:', prestation);
+
+    // MODIFICATION ICI : Choisir entre création et mise à jour
+    let success;
+    if (this.editingPrestationId) {
+        // Mode édition : utiliser updateData
+        success = await this.updateData(this.editingPrestationId, prestation);
+    } else {
+        // Mode création : utiliser saveData
+        success = await this.saveData(prestation);
+    }
+
+    if (success) {
+        this.resetForm();
+    }
+}
 
     buildPureItems() {
         if (!document.querySelectorAll('.pure-row').length) {

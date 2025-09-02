@@ -800,7 +800,7 @@
 /* Style des champs de saisie DANS l'éditeur */
 #gestion-tickets-entree .max-entries-editor input {
     width: 80px;
-    height: 20px;
+    height: 30px;
     padding: 6px 8px;
     background-color: #444; /* Couleur spécifique */
     border: 1px solid #555;

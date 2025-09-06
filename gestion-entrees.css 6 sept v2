@@ -1,0 +1,1073 @@
+/* public/css/gestion-entrees.css */
+
+#gestion-tickets-entree .separator-line {
+    width: 100%;
+    height: 2px;
+    background: linear-gradient(to right, #9733EE, #DA22FF);
+    margin: 15px 0;
+    border-radius: 1px;
+}
+
+/* Applique les styles uniquement à l'intérieur de la section de gestion des tickets */
+#gestion-tickets-entree {
+    color: #ffffff;
+    padding: 20px;
+    font-family: 'Roboto', sans-serif;
+}
+
+#gestion-tickets-entree .container, 
+#gestion-tickets-entree .kiosk-container {
+    background-color: #1e1e1e;
+    border-radius: 12px;
+    width: 100%;
+    max-width: 1300px;
+    margin: 20px auto;
+    padding: 20px;
+    overflow: hidden;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    box-sizing: border-box;
+}
+
+#gestion-tickets-entree .kiosk-container {
+    max-width: 600px;
+    margin: 20px auto;
+    display: none;
+}
+
+#gestion-tickets-entree .container { display: block; }
+
+#gestion-tickets-entree .access-section, 
+#gestion-tickets-entree .kiosk-items-container,
+#gestion-tickets-entree .header-content, 
+#gestion-tickets-entree .kiosk-header {
+    background-color: #2c2c2c;
+    padding: 20px;
+    text-align: center;
+    border-bottom: 1px solid #333;
+    margin: -20px -20px 20px -20px; 
+}
+
+#gestion-tickets-entree .header-content { margin-bottom: 20px; }
+
+#gestion-tickets-entree h1 {
+    font-size: 24px;
+    font-weight: 700;
+    margin-bottom: 8px;
+    text-align: center;
+}
+
+#gestion-tickets-entree h2 {
+    font-size: 20px;
+    font-weight: 600;
+    margin-bottom: 10px;
+}
+
+#gestion-tickets-entree .subtitle {
+    font-size: 16px;
+    color: #b3b3b3;
+}
+
+#gestion-tickets-entree .current-prestations {
+    margin-bottom: 20px;
+    padding: 15px;
+    background: linear-gradient(135deg, #1c2526 0%, #2a3b4c 100%);
+    border-radius: 8px;
+    min-width: 0;
+    overflow-x: auto;
+}
+
+#gestion-tickets-entree .day-filter {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-bottom: 15px;
+}
+
+#gestion-tickets-entree .day-btn, 
+#gestion-tickets-entree .preview-btn, 
+#gestion-tickets-entree .add-pure-btn, 
+#gestion-tickets-entree .toggle-btn {
+    padding: 8px 15px;
+    background: #444;
+    border: 1px solid #333;
+    border-radius: 4px;
+    cursor: pointer;
+    color: white;
+    transition: background-color 0.3s;
+}
+
+#gestion-tickets-entree .toggle-btn {
+    position: absolute;
+    top: 30px;
+    right: 30px;
+}
+
+#gestion-tickets-entree .add-pure-btn {
+    margin-top: 20px;
+    align-self: flex-start;
+}
+
+#gestion-tickets-entree .day-btn:hover, 
+#gestion-tickets-entree .preview-btn:hover, 
+#gestion-tickets-entree .add-pure-btn:hover, 
+#gestion-tickets-entree .toggle-btn:hover {
+    background: #555;
+}
+
+#gestion-tickets-entree .day-btn.active, 
+#gestion-tickets-entree .preview-btn.active {
+    background: linear-gradient(to right, #9733EE, #DA22FF);
+}
+
+#gestion-tickets-entree .prestation-item, 
+#gestion-tickets-entree .pure-item {
+    cursor: move;
+    user-select: none;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: #2a3435;
+    border-radius: 8px;
+    margin-bottom: 10px;
+    padding: 10px;
+    transition: box-shadow 0.3s;
+}
+
+#gestion-tickets-entree .prestation-item.dragging, 
+#gestion-tickets-entree .pure-row.dragging {
+    opacity: 0.5;
+}
+
+#gestion-tickets-entree .prestation-item:hover, 
+#gestion-tickets-entree .pure-item:hover {
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+/* Configuration de la grille pour access avec colonne ordre */
+#gestion-tickets-entree .access-header-row, 
+#gestion-tickets-entree .access-detail-row {
+    display: grid;
+    grid-template-columns: 60px minmax(120px, 1fr) minmax(150px, 1fr) minmax(70px, 0.8fr) 70px 65px;
+    gap: 10px;
+    padding: 5px 0;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* Configuration de la grille pour pure avec colonne ordre */
+#gestion-tickets-entree .pure-header-row, 
+#gestion-tickets-entree .pure-detail-row {
+    display: grid;
+    grid-template-columns: 50px 1fr 1fr 1fr 0.5fr 0.5fr 0.8fr 1fr auto;
+    gap: 10px;
+    padding: 5px 0;
+    align-items: center;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+#gestion-tickets-entree .access-header-row, 
+#gestion-tickets-entree .pure-header-row {
+    border-bottom: 2px solid #00D4FF;
+    margin-bottom: 5px;
+}
+
+#gestion-tickets-entree .access-detail-row, 
+#gestion-tickets-entree .pure-detail-row {
+    border-bottom: 1px solid #444;
+    white-space: nowrap;
+    overflow-x: auto;
+}
+
+#gestion-tickets-entree .access-detail-row:last-child, 
+#gestion-tickets-entree .pure-detail-row:last-child {
+    border-bottom: none;
+}
+
+#gestion-tickets-entree .prestation-label {
+    font-weight: 500;
+    color: #00D4FF;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-size: 16px;
+    line-height: 1.2;
+    position: relative;
+    display: flex;           /* Ajouter */
+    align-items: center;
+}
+
+/* Style pour la colonne ordre dans l'en-tête */
+#gestion-tickets-entree .order-label {
+    font-weight: 600;
+    color: #FF00FF;
+    text-align: center;
+    height: 100%;
+}
+
+/* Style pour l'affichage du numéro d'ordre dans access */
+#gestion-tickets-entree .prestation-order {
+    font-size: 16px;
+    font-weight: 467;
+    color: #00D4FF;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #1c2526 0%, #2a3b4c 100%);
+    border-radius: 50%;
+    width: 27px;
+    height: 27px;
+    margin: 0 auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+}
+
+/* Style pour l'affichage du numéro d'ordre dans pure */
+#gestion-tickets-entree .prestation-order-pure {
+    font-size: 16px;
+    font-weight: 467;
+    color: #DA22FF;
+    text-align: center;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #2a1c3e 0%, #3b2a5d 100%);
+    border-radius: 50%;
+    width: 27px;
+    height: 27px;
+    margin: 0 auto;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+    transition: transform 0.2s;
+}
+
+/* Espace vide pour les lignes sans ordre */
+#gestion-tickets-entree .prestation-order-empty {
+    width: 35px;
+    height: 35px;
+}
+
+/* Effet hover sur le numéro d'ordre access */
+#gestion-tickets-entree .prestation-item:hover .prestation-order {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(0, 212, 255, 0.5);
+}
+
+/* Effet hover sur le numéro d'ordre pure */
+#gestion-tickets-entree .pure-item:hover .prestation-order-pure {
+    transform: scale(1.1);
+    box-shadow: 0 0 10px rgba(218, 34, 255, 0.5);
+}
+
+/* Animation lors du drag & drop pour access */
+#gestion-tickets-entree .prestation-item.dragging .prestation-order {
+    animation: pulse 1s infinite;
+}
+
+/* Animation lors du drag & drop pour pure */
+#gestion-tickets-entree .pure-item.dragging .prestation-order-pure {
+    animation: pulse-pure 1s infinite;
+}
+
+/* --- STYLES POUR LA FLÈCHE DE SECTION --- */
+#gestion-tickets-entree .section-toggle-arrow {
+    cursor: pointer;
+    width: 0;
+    height: 0;
+    border-left: 7px solid transparent;
+    border-right: 7px solid transparent;
+    border-top: 9px solid #00D4FF; /* Flèche pointant vers le bas */
+    transition: transform 0.3s ease;
+    margin: 0 15px; /* Ajoute un peu d'espace autour */
+}
+
+#gestion-tickets-entree .section-toggle-arrow:hover {
+    opacity: 0.8;
+}
+
+/* Fait pivoter la flèche quand la section est réduite */
+#gestion-tickets-entree .section-toggle-arrow:not(.expanded) {
+    transform: rotate(-90deg); /* Flèche pointant vers la droite */
+}
+
+/* --- LOGIQUE POUR CACHER LES ITEMS --- */
+
+/* Quand la liste a la classe 'collapsed', on cache tous les .prestation-item qui sont des enfants directs */
+#gestion-tickets-entree #access-prestations-list.collapsed > .prestation-item,
+#gestion-tickets-entree #pure-prestations-list.collapsed > .prestation-item {
+    display: none;
+}
+
+@keyframes pulse {
+    0% {
+        box-shadow: 0 0 0 0 rgba(0, 212, 255, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(0, 212, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(0, 212, 255, 0);
+    }
+}
+
+@keyframes pulse-pure {
+    0% {
+        box-shadow: 0 0 0 0 rgba(218, 34, 255, 0.7);
+    }
+    70% {
+        box-shadow: 0 0 0 10px rgba(218, 34, 255, 0);
+    }
+    100% {
+        box-shadow: 0 0 0 0 rgba(218, 34, 255, 0);
+    }
+}
+
+#gestion-tickets-entree .access-detail-row .prestation-label,
+#gestion-tickets-entree .pure-detail-row .prestation-label {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#gestion-tickets-entree .access-detail-row .prestation-label:hover,
+#gestion-tickets-entree .pure-detail-row .prestation-label:hover {
+    cursor: pointer;
+}
+
+#gestion-tickets-entree .pure-detail-row .prestation-label:nth-child(2) {
+    color: #ffffff;
+}
+
+#gestion-tickets-entree .prestation-value, 
+#gestion-tickets-entree .prestation-qty, 
+#gestion-tickets-entree .prestation-price, 
+#gestion-tickets-entree .prestation-max, 
+#gestion-tickets-entree .prestation-discount {
+    font-size: 16px;
+    color: #e0e0e0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: flex;
+    align-items: center;
+    padding: 0 5px;
+    min-height: 20px;
+    line-height: 1.2;
+    position: relative;
+}
+
+/* Réduire légèrement la taille de la colonne sexe */
+#gestion-tickets-entree .prestation-sex {
+    font-size: 14px;
+}
+
+#gestion-tickets-entree .access-detail-row .prestation-value,
+#gestion-tickets-entree .pure-detail-row .prestation-value {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+#gestion-tickets-entree .access-detail-row .prestation-value:hover,
+#gestion-tickets-entree .pure-detail-row .prestation-value:hover {
+    cursor: pointer;
+}
+
+#gestion-tickets-entree .prestation-value { color: #fff; }
+#gestion-tickets-entree .prestation-qty { justify-content: flex-start; }
+#gestion-tickets-entree .prestation-price { justify-content: flex-start; }
+#gestion-tickets-entree .prestation-max, 
+#gestion-tickets-entree .prestation-discount { justify-content: center; }
+
+#gestion-tickets-entree .button-container {
+    display: flex;
+    gap: 5px;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+}
+
+#gestion-tickets-entree .delete-btn, 
+#gestion-tickets-entree .edit-btn, 
+#gestion-tickets-entree .pure-duplicate-btn, 
+#gestion-tickets-entree .pure-delete-btn, 
+#gestion-tickets-entree .add-details-btn, 
+#gestion-tickets-entree .delete-details-btn {
+    border: none;
+    border-radius: 50%;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: box-shadow 0.3s, transform 0.3s;
+}
+
+#gestion-tickets-entree .delete-btn, 
+#gestion-tickets-entree .pure-delete-btn, 
+#gestion-tickets-entree .delete-details-btn {
+    background-color: #ff4444;
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+}
+
+#gestion-tickets-entree .edit-btn {
+    background-color: #9733EE;
+    width: 22px;
+    height: 22px;
+    font-size: 12px;
+}
+
+#gestion-tickets-entree .pure-duplicate-btn {
+    background-color: #4CAF50;
+    width: 21px;
+    height: 21px;
+    font-size: 12px;
+}
+
+#gestion-tickets-entree .add-details-btn, 
+#gestion-tickets-entree .delete-details-btn {
+    width: 30px;
+    height: 30px;
+    font-size: 16px;
+}
+
+#gestion-tickets-entree .add-details-btn {
+    background-color: #4CAF50;
+    margin-top: 5px;
+    align-self: center;
+}
+
+#gestion-tickets-entree .delete-btn:hover, 
+#gestion-tickets-entree .edit-btn:hover, 
+#gestion-tickets-entree .pure-duplicate-btn:hover, 
+#gestion-tickets-entree .pure-delete-btn:hover, 
+#gestion-tickets-entree .add-details-btn:hover, 
+#gestion-tickets-entree .delete-details-btn:hover {
+    box-shadow: 0 0 10px currentColor, 0 0 5px #00D4FF;
+    transform: scale(1.1);
+}
+
+#gestion-tickets-entree .delete-btn:active, 
+#gestion-tickets-entree .edit-btn:active, 
+#gestion-tickets-entree .pure-duplicate-btn:active, 
+#gestion-tickets-entree .pure-delete-btn:active, 
+#gestion-tickets-entree .add-details-btn:active, 
+#gestion-tickets-entree .delete-details-btn:active {
+    transform: scale(0.95);
+}
+
+#gestion-tickets-entree .access-form, 
+#gestion-tickets-entree .form-group {
+    margin-bottom: 20px;
+}
+
+#gestion-tickets-entree label {
+    display: block;
+    margin-bottom: 3px;
+    font-weight: 500;
+}
+
+#gestion-tickets-entree input, 
+#gestion-tickets-entree select {
+    padding: 10px;
+    background-color: #333;
+    border: 1px solid #333;
+    color: white;
+    border-radius: 4px;
+    width: 100%;
+    max-width: 300px;
+    transition: background-color 0.3s, box-shadow 0.3s;
+}
+
+#gestion-tickets-entree input:hover, 
+#gestion-tickets-entree select:hover, 
+#gestion-tickets-entree input:focus, 
+#gestion-tickets-entree select:focus {
+    background-color: #444;
+    box-shadow: 0 0 5px #00D4FF;
+    outline: none;
+}
+
+#gestion-tickets-entree .days-checkboxes {
+    display: flex;
+    gap: 15px;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    padding: 5px;
+}
+
+#gestion-tickets-entree .days-checkboxes.error {
+    border: 2px solid #ff4444;
+    border-radius: 4px;
+}
+
+#gestion-tickets-entree .days-checkboxes label {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    white-space: nowrap;
+}
+
+#gestion-tickets-entree .error input, 
+#gestion-tickets-entree .error select {
+    border: 2px solid #ff4444 !important;
+}
+
+#gestion-tickets-entree .pure-container {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 20px;
+    width: 100%;
+}
+
+#gestion-tickets-entree .pure-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
+    max-width: 960px;
+    border-bottom: 1px solid #444;
+    padding-bottom: 10px;
+}
+
+#gestion-tickets-entree .category-section, 
+#gestion-tickets-entree .name-section, 
+#gestion-tickets-entree .details-row {
+    display: flex;
+    align-items: flex-end;
+    gap: 10px;
+}
+
+#gestion-tickets-entree .pure-row .category-section > div, 
+#gestion-tickets-entree .pure-row .name-section > div, 
+#gestion-tickets-entree .pure-row .details-row > div {
+    display: flex;
+    flex-direction: column;
+}
+
+#gestion-tickets-entree .details-section {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+#gestion-tickets-entree .pure-row input.pure-name, 
+#gestion-tickets-entree .pure-row input.pure-custom-category, 
+#gestion-tickets-entree .pure-row input[list="bottle-categories"],
+#gestion-tickets-entree .details-row input.pure-name {
+    width: 220px;
+    max-width: none;
+}
+
+#gestion-tickets-entree .pure-row input.pure-qty, 
+#gestion-tickets-entree .pure-row input.pure-price, 
+#gestion-tickets-entree .pure-row input.pure-max-entries, 
+#gestion-tickets-entree .pure-row input.pure-discount,
+#gestion-tickets-entree .details-row input.pure-qty, 
+#gestion-tickets-entree .details-row input.pure-price, 
+#gestion-tickets-entree .details-row input.pure-max-entries, 
+#gestion-tickets-entree .details-row input.pure-discount,
+#gestion-tickets-entree .presentation-fields input#access-price, 
+#gestion-tickets-entree .presentation-fields .sex-container select {
+    width: 150px;
+    max-width: none;
+}
+
+#gestion-tickets-entree .presentation-group, 
+#gestion-tickets-entree .pure-group {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    position: relative;
+    padding-top: 20px;
+}
+
+#gestion-tickets-entree .presentation-group h3, 
+#gestion-tickets-entree .pure-group h3 {
+    margin-bottom: 15px;
+    font-size: 18px;
+}
+
+#gestion-tickets-entree .presentation-group::before, 
+#gestion-tickets-entree .pure-group::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 2px;
+    background-color: #00D4FF;
+}
+
+#gestion-tickets-entree .presentation-fields {
+    display: flex;
+    justify-content: flex-start;
+    width: 100%;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+#gestion-tickets-entree .presentation-fields div {
+    flex: 1;
+    min-width: 220px;
+}
+
+#gestion-tickets-entree .presentation-fields .price-container, 
+#gestion-tickets-entree .presentation-fields .sex-container {
+    flex: none;
+    min-width: auto;
+}
+
+#gestion-tickets-entree .presentation-fields input, 
+#gestion-tickets-entree .presentation-fields select {
+    width: 100%;
+    max-width: none;
+}
+
+#gestion-tickets-entree .save-btn, 
+#gestion-tickets-entree .kiosk-checkout-btn {
+    padding: 15px;
+    background: linear-gradient(to right, #9733EE, #DA22FF);
+    color: white;
+    border: 1px solid #333;
+    border-radius: 6px;
+    font-size: 18px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+    width: 100%;
+}
+
+#gestion-tickets-entree .save-btn {
+    margin: 20px 0;
+}
+
+#gestion-tickets-entree .save-btn:hover {
+    box-shadow: 0 0 10px #9733EE, 0 0 5px #00D4FF;
+}
+
+#gestion-tickets-entree .kiosk-checkout-btn {
+    transition: opacity 0.2s;
+    border: none;
+}
+
+#gestion-tickets-entree .kiosk-checkout-btn:hover { opacity: 0.9; }
+#gestion-tickets-entree .kiosk-checkout-btn:active { opacity: 0.8; }
+#gestion-tickets-entree .kiosk-checkout-btn:disabled {
+    background: #444;
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+#gestion-tickets-entree .preview-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 15px;
+    background: linear-gradient(135deg, #2a3435 0%, #3b4c5d 100%);
+    border: 1px solid #FF00FF;
+}
+
+#gestion-tickets-entree .preview-table th, 
+#gestion-tickets-entree .preview-table td {
+    padding: 10px;
+    border: 1px solid #555;
+    text-align: left;
+    vertical-align: top;
+}
+
+#gestion-tickets-entree .preview-table th {
+    background-color: #444;
+    font-weight: 700;
+    border-bottom: 2px solid #00D4FF;
+}
+
+#gestion-tickets-entree .preview-table .day-cell {
+    cursor: pointer;
+    transition: box-shadow 0.3s;
+}
+
+#gestion-tickets-entree .preview-table .day-cell:hover {
+    box-shadow: 0 0 5px #00D4FF;
+}
+
+#gestion-tickets-entree .preview-table .day-lundi, 
+#gestion-tickets-entree .preview-table .day-mercredi,
+#gestion-tickets-entree .preview-table .day-vendredi, 
+#gestion-tickets-entree .preview-table .day-dimanche {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+#gestion-tickets-entree .preview-table .day-mardi, 
+#gestion-tickets-entree .preview-table .day-jeudi,
+#gestion-tickets-entree .preview-table .day-samedi {
+    background-color: rgba(0, 0, 0, 0.05);
+}
+
+#gestion-tickets-entree .kiosk-separator {
+    width: 70%;
+    height: 2px;
+    background-color: #ffffff;
+    margin: 20px auto;
+}
+
+#gestion-tickets-entree .kiosk-item {
+    padding: 15px 0;
+    border-bottom: 1px solid #333;
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto;
+}
+
+#gestion-tickets-entree .kiosk-item:last-child { border-bottom: none; }
+
+#gestion-tickets-entree .kiosk-item-content {
+    display: grid;
+    grid-template-columns: 1fr 120px 140px;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+}
+
+#gestion-tickets-entree .kiosk-item-category {
+    color: #00D4FF;
+    font-size: 16px;
+    font-weight: 600;
+    margin-bottom: 5px;
+}
+
+#gestion-tickets-entree .kiosk-item-name {
+    font-size: 18px;
+    font-weight: 500;
+    text-align: left;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: normal;
+    word-wrap: break-word;
+    max-width: 100%;
+    line-height: 1.2;
+    display: -webkit-box;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
+    -webkit-box-orient: vertical;
+}
+
+#gestion-tickets-entree .kiosk-item-price-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    min-width: 120px;
+    max-width: 120px;
+    white-space: nowrap;
+}
+
+#gestion-tickets-entree .kiosk-item-price {
+    font-size: 16px;
+    color: #b3b3b3;
+    margin-bottom: 5px;
+    text-align: center;
+}
+
+#gestion-tickets-entree .kiosk-item-max {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    color: #b3b3b3;
+    font-size: 14px;
+    white-space: nowrap;
+}
+
+#gestion-tickets-entree .kiosk-max-value { font-weight: 600; color: #e0e0e0; }
+#gestion-tickets-entree .kiosk-max-label { font-size: 14px; }
+
+#gestion-tickets-entree .kiosk-quantity-control {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    justify-content: flex-end;
+    min-width: 140px;
+    max-width: 140px;
+}
+
+#gestion-tickets-entree .kiosk-qty-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    border: none;
+    background-color: #333;
+    color: white;
+    font-size: 18px;
+    cursor: pointer;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    transition: background-color 0.2s;
+}
+
+#gestion-tickets-entree .kiosk-qty-btn:hover { background-color: #444; }
+#gestion-tickets-entree .kiosk-qty-btn:active { background-color: #555; }
+
+#gestion-tickets-entree .kiosk-qty-value {
+    width: 40px;
+    text-align: center;
+    font-size: 18px;
+}
+
+#gestion-tickets-entree .kiosk-total-section {
+    background-color: #2c2c2c;
+    padding: 20px;
+    border-top: 1px solid #333;
+}
+
+#gestion-tickets-entree .kiosk-total-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 20px;
+    font-weight: 700;
+    margin-bottom: 20px;
+}
+
+#gestion-tickets-entree .kiosk-total-discount {
+    color: #ff4444;
+    font-style: italic;
+}
+
+#gestion-tickets-entree .kiosk-category h2 {
+    text-align: center;
+}
+
+#gestion-tickets-entree .even-row { background-color: rgba(255, 255, 255, 0.05); }
+#gestion-tickets-entree .odd-row { background-color: rgba(0, 0, 0, 0.1); }
+
+#gestion-tickets-entree .tooltip-icon {
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+    width: 16px;
+    height: 16px;
+    background-color: #2a2a2a;
+    color: #b3b3b3;
+    border-radius: 50%;
+    font-size: 12px;
+    font-weight: 700;
+    cursor: pointer;
+    margin-left: 5px;
+    vertical-align: middle;
+    transition: background-color 0.3s;
+}
+
+#gestion-tickets-entree .tooltip-icon:hover {
+    background-color: #3a3a3a;
+}
+
+.tooltip {
+    position: absolute;
+    background-color: #333;
+    color: #fff;
+    padding: 10px;
+    border-radius: 4px;
+    font-size: 14px;
+    z-index: 1000;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.5);
+    display: none;
+    max-width: 300px;
+    pointer-events: none;
+    white-space: normal;
+    line-height: 1.4;
+}
+
+.tooltip.visible {
+    display: block;
+}
+
+.max-entries-editor {
+    position: absolute;
+    bottom: calc(100% + 5px);
+    left: 0;
+    background: #333;
+    color: #fff;
+    padding: 15px;
+    border-radius: 8px;
+    z-index: 1001;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
+    width: 300px;
+    border: 1px solid #555;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+}
+
+.max-entries-editor h4 {
+    margin: 0 0 10px 0;
+    font-size: 16px;
+    font-weight: 500;
+    text-align: center;
+    border-bottom: 1px solid #555;
+    padding-bottom: 10px;
+}
+
+.max-entries-editor .editor-content {
+    max-height: 160px;
+    overflow-y: auto;
+    padding: 5px;
+}
+
+.max-entries-editor .max-entry-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    font-size: 14px;
+}
+
+.max-entries-editor .max-entry-row span {
+    margin-right: 10px;
+}
+
+#gestion-tickets-entree .max-entries-editor input {
+    width: 80px;
+    height: 30px;
+    padding: 6px 8px;
+    background-color: #444;
+    border: 1px solid #555;
+    color: white;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: center;
+}
+
+.max-entries-editor .editor-footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    padding-top: 10px;
+    border-top: 1px solid #444;
+}
+
+.max-entries-editor .editor-footer button {
+    border: none;
+    border-radius: 5px;
+    padding: 8px 16px;
+    font-size: 14px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.max-entries-editor .cancel-btn,
+.max-entries-editor .add-max-btn {
+    background-color: #555;
+    color: #ddd;
+}
+
+.max-entries-editor .cancel-btn:hover,
+.max-entries-editor .add-max-btn:hover {
+    background-color: #666;
+    color: #fff;
+}
+
+.max-entries-editor .save-max-btn {
+    background: linear-gradient(to right, #9733EE, #DA22FF);
+    color: white;
+}
+
+.max-entries-editor.position-top-fallback {
+    bottom: auto;
+    top: calc(100% + 5px);
+}
+
+.max-entries-editor.position-right-fallback {
+    left: auto;
+    right: 0;
+}
+
+.max-entries-editor .input-with-delete {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.max-entries-editor .delete-max-btn {
+    background-color: #ff4444;
+    border: none;
+    border-radius: 50%;
+    width: 24px;
+    height: 24px;
+    color: white;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 12px;
+    transition: all 0.2s;
+}
+
+.max-entries-editor .delete-max-btn:hover {
+    background-color: #ff6666;
+    transform: scale(1.1);
+}
+
+.max-entries-editor .delete-max-btn:active {
+    transform: scale(0.95);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #gestion-tickets-entree .access-header-row, 
+    #gestion-tickets-entree .access-detail-row, 
+    #gestion-tickets-entree .pure-header-row, 
+    #gestion-tickets-entree .pure-detail-row {
+        grid-template-columns: 1fr;
+        gap: 5px;
+    }
+    
+    /* Masquer les colonnes ordre sur mobile */
+    #gestion-tickets-entree .prestation-order,
+    #gestion-tickets-entree .prestation-order-pure,
+    #gestion-tickets-entree .prestation-order-empty,
+    #gestion-tickets-entree .order-label {
+        display: none;
+    }
+    
+    #gestion-tickets-entree .pure-row input.pure-name,
+    #gestion-tickets-entree .pure-row input.pure-custom-category,
+    #gestion-tickets-entree .pure-row input[list="bottle-categories"],
+    #gestion-tickets-entree .details-row input.pure-name,
+    #gestion-tickets-entree .pure-row input.pure-qty,
+    #gestion-tickets-entree .pure-row input.pure-price,
+    #gestion-tickets-entree .pure-row input.pure-max-entries,
+    #gestion-tickets-entree .pure-row input.pure-discount,
+    #gestion-tickets-entree .details-row input.pure-qty,
+    #gestion-tickets-entree .details-row input.pure-price,
+    #gestion-tickets-entree .details-row input.pure-max-entries,
+    #gestion-tickets-entree .details-row input.pure-discount,
+    #gestion-tickets-entree .presentation-fields input#access-price,
+    #gestion-tickets-entree .presentation-fields .sex-container select {
+        width: 100%;
+        max-width: 100%;
+    }
+    
+    #gestion-tickets-entree .presentation-fields {
+        flex-direction: column;
+    }
+    
+    #gestion-tickets-entree .category-section,
+    #gestion-tickets-entree .name-section,
+    #gestion-tickets-entree .details-row {
+        flex-direction: column;
+        align-items: stretch;
+    }
+    
+    #gestion-tickets-entree .button-container {
+        justify-content: center;
+        margin-top: 10px;
+    }
+    
+    .max-entries-editor {
+        width: 90%;
+        max-width: 300px;
+    }
+}

@@ -974,7 +974,8 @@
 .kiosk-item-content,
 #kiosk-view .kiosk-item-content {
     display: grid;
-    grid-template-columns: 1fr auto 140px;
+    /* CORRIGÉ : La règle de centrage est maintenant ici, pour s'appliquer par défaut */
+    grid-template-columns: 1fr auto 1fr;
     align-items: center;
     gap: 15px;
     width: 100%;
@@ -998,19 +999,23 @@
     word-wrap: break-word;
     word-break: break-word;
     hyphens: auto;
-    padding-right: 10px;
+    /* CORRIGÉ : La limitation de largeur est aussi ici, pour le desktop */
+    max-width: 250px; 
+    min-width: 150px;
 }
 
 .kiosk-item-price-container,
 #kiosk-view .kiosk-item-price-container {
     display: flex;
     flex-direction: column;
-    align-items: center;
+    /* MODIFIÉ : Aligne les éléments à gauche dans ce conteneur. */
+    align-items: flex-start;
     justify-content: center;
-    text-align: center;
-    min-width: 140px;
-    max-width: 140px;
+    /* MODIFIÉ : text-align: left pour être cohérent. */
+    text-align: left;
     white-space: nowrap;
+    /* MODIFIÉ : On retire la marge négative qui n'est plus nécessaire. */
+    margin-left: 0;
 }
 
 .kiosk-item-price,
@@ -1018,7 +1023,7 @@
     font-size: 16px;
     color: #b3b3b3;
     margin-bottom: 5px;
-    text-align: center;
+    text-align: left;
 }
 
 .kiosk-item-max,
@@ -1029,6 +1034,7 @@
     color: #b3b3b3;
     font-size: 14px;
     white-space: nowrap;
+    text-align: left;
 }
 
 .kiosk-max-value,
@@ -1049,8 +1055,6 @@
     align-items: center;
     gap: 5px;
     justify-content: flex-end;
-    min-width: 140px;
-    max-width: 140px;
 }
 
 .kiosk-qty-btn,
@@ -1244,24 +1248,32 @@
     /* Responsive pour le kiosque */
     .kiosk-item-content,
     #kiosk-view .kiosk-item-content {
-        grid-template-columns: 1fr;
+        /* On passe sur une seule colonne pour les petits écrans */
+        grid-template-columns: 1fr; 
         justify-items: center;
         text-align: center;
         gap: 10px;
     }
-    
+   
     .kiosk-item-name,
     #kiosk-view .kiosk-item-name {
+        /* On centre le nom sur mobile */
         text-align: center;
+        /* On retire les limitations de taille spécifiques au desktop */
+        min-width: 0;
+        max-width: 100%;
     }
-    
+   
     .kiosk-quantity-control,
     #kiosk-view .kiosk-quantity-control {
         justify-content: center;
     }
-    
+   
     .kiosk-item-price-container,
     #kiosk-view .kiosk-item-price-container {
+        /* On centre les éléments du prix sur mobile */
+        align-items: center;
+        text-align: center;
         margin: 10px 0;
     }
 }
@@ -1275,7 +1287,6 @@
 #gestion-tickets-entree.active .access-form,
 #gestion-tickets-entree.active .save-btn {
     display: block;
-
 }
 
 /* S'assure que le preview s'affiche correctement */
@@ -1295,4 +1306,180 @@
 #gestion-tickets-entree.preview-active #preview-section {
     /* ... et on affiche la section d'aperçu avec la table */
     display: block !important;
+}
+
+/* ===== STYLES POUR LES MESSAGES ===== */
+
+.message {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 500;
+    animation: slideDown 0.3s ease;
+}
+
+.success-message {
+    background-color: #4CAF50;
+    color: white;
+    border: 1px solid #45a049;
+}
+
+.error-message {
+    background-color: #ff4444;
+    color: white;
+    border: 1px solid #cc0000;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* ===== STYLES POUR LE LOADING ===== */
+
+#gestion-tickets-entree .container.loading {
+    position: relative;
+    pointer-events: none;
+    opacity: 0.6;
+}
+
+#gestion-tickets-entree .container.loading::after {
+    content: '';
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #9733EE;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: translate(-50%, -50%) rotate(0deg); }
+    100% { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ===== STYLES POUR LE MODAL DE CONFIRMATION ===== */
+
+.unified-confirmation-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10000;
+    opacity: 0;
+    animation: fadeIn 0.3s ease forwards;
+}
+
+.unified-confirmation-modal.show {
+    opacity: 1;
+}
+
+.unified-confirmation-modal.closing {
+    animation: fadeOut 0.3s ease forwards;
+}
+
+.unified-confirmation-modal .modal-content {
+    background-color: #2c2c2c;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 400px;
+    width: 90%;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+    border: 1px solid #444;
+    animation: scaleIn 0.3s ease;
+}
+
+.unified-confirmation-modal .modal-message {
+    color: #ffffff;
+    font-size: 16px;
+    line-height: 1.5;
+    margin-bottom: 25px;
+    text-align: center;
+}
+
+.unified-confirmation-modal .modal-buttons {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+}
+
+.unified-confirmation-modal .modal-btn {
+    padding: 10px 30px;
+    border: none;
+    border-radius: 6px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    min-width: 100px;
+}
+
+.unified-confirmation-modal .btn-confirm {
+    background: linear-gradient(to right, #9733EE, #DA22FF);
+    color: white;
+}
+
+.unified-confirmation-modal .btn-confirm:hover {
+    box-shadow: 0 0 10px #9733EE;
+    transform: translateY(-2px);
+}
+
+.unified-confirmation-modal .btn-cancel {
+    background-color: #555;
+    color: #ddd;
+}
+
+.unified-confirmation-modal .btn-cancel:hover {
+    background-color: #666;
+    color: #fff;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
+    }
+}
+
+@keyframes scaleIn {
+    from {
+        transform: scale(0.8);
+        opacity: 0;
+    }
+    to {
+        transform: scale(1);
+        opacity: 1;
+    }
+}
+
+/* Empêche le scroll du body quand le modal est ouvert */
+body.modal-open {
+    overflow: hidden;
 }

@@ -1006,16 +1006,20 @@
 
 .kiosk-item-price-container,
 #kiosk-view .kiosk-item-price-container {
+    /* Style de base pour TOUS les conteneurs de prix (aligné à gauche par défaut) */
     display: flex;
     flex-direction: column;
-    /* MODIFIÉ : Aligne les éléments à gauche dans ce conteneur. */
-    align-items: flex-start;
+    align-items: flex-start; /* Aligné à gauche */
     justify-content: center;
-    /* MODIFIÉ : text-align: left pour être cohérent. */
-    text-align: left;
+    text-align: left; /* Aligné à gauche */
     white-space: nowrap;
-    /* MODIFIÉ : On retire la marge négative qui n'est plus nécessaire. */
     margin-left: 0;
+}
+
+/* Règle SPÉCIFIQUE pour centrer le contenu uniquement dans la section "Pure Soirée" */
+#pure-soiree-kiosk .kiosk-item-price-container {
+    align-items: center; /* On change pour centré */
+    text-align: center; /* On change pour centré */
 }
 
 .kiosk-item-price,

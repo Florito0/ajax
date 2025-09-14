@@ -227,64 +227,96 @@ class GestionEntrees {
     }
 
     renderKioskItems() {
-        if (!this.kioskContainer) return;
+    if (!this.kioskContainer) return;
 
-        this.kioskAccessContainer.innerHTML = '';
-        this.kioskPureContainer.innerHTML = '';
-        this.kioskItems = {};
-        
-        const today = new Date();
-        const daysOfWeek = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
-        const currentDay = daysOfWeek[today.getDay()];
-        
-        const todayPrestations = this.prestations.filter(p => p.days && p.days.includes(currentDay));
-        let hasAccess = false;
-        let hasPure = false;
+    // Réinitialisation des conteneurs et des articles
+    this.kioskAccessContainer.innerHTML = '';
+    this.kioskPureContainer.innerHTML = '';
+    this.kioskItems = {};
 
-        todayPrestations.forEach((prestation, prestationIndex) => {
-            if (this.hasAccessData(prestation)) {
-                hasAccess = true;
-                const price = parseFloat(prestation.price) || 0;
-                ['Low', 'Normal', 'Alcohol', 'Soft'].forEach(type => {
-                    const presentationName = prestation[`presentation${type}`];
-                    if (presentationName) {
-                        const id = `access-${type.toLowerCase()}-${prestationIndex}`;
-                        this.kioskItems[id] = { name: presentationName, price, qty: 0, maxQty: 10 };
-                        this.kioskAccessContainer.innerHTML += this.createKioskItemHTML(id, presentationName, price);
+    const today = new Date();
+    const daysOfWeek = ["Dimanche", "Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi"];
+    const currentDay = daysOfWeek[today.getDay()];
+
+    const todayPrestations = this.prestations.filter(p => p.days && p.days.includes(currentDay));
+    let hasAccess = false;
+    let hasPure = false;
+
+    // --- Rendu des "Accès Soirée" (inchangé) ---
+    todayPrestations.forEach((prestation, prestationIndex) => {
+        if (this.hasAccessData(prestation)) {
+            hasAccess = true;
+            const price = parseFloat(prestation.price) || 0;
+            ['Low', 'Normal', 'Alcohol', 'Soft'].forEach(type => {
+                const presentationName = prestation[`presentation${type}`];
+                if (presentationName) {
+                    const id = `access-${type.toLowerCase()}-${prestationIndex}`;
+                    this.kioskItems[id] = { name: presentationName, price, qty: 0, maxQty: 10 };
+                    this.kioskAccessContainer.innerHTML += this.createKioskItemHTML(id, presentationName, price);
+                }
+            });
+        }
+    });
+
+    // --- NOUVELLE LOGIQUE POUR "Pure Soirée" AVEC REGROUPEMENT PAR CATÉGORIE ---
+    const pureItemsGrouped = {}; // Objet pour stocker les articles regroupés
+
+    // 1. On parcourt et on regroupe les articles par catégorie
+    todayPrestations.forEach((prestation, prestationIndex) => {
+        if (prestation.pureItems && prestation.pureItems.length > 0) {
+            hasPure = true;
+            prestation.pureItems.forEach((pure, pureIndex) => {
+                pure.details.forEach((detail, detailIndex) => {
+                    // Utiliser "Autres" si aucune catégorie n'est définie
+                    const category = detail.category || 'Autres'; 
+                    if (!pureItemsGrouped[category]) {
+                        pureItemsGrouped[category] = [];
                     }
-                });
-            }
 
-            // Logique pour les formules bouteille
-            if (prestation.pureItems && prestation.pureItems.length > 0) {
-                hasPure = true;
-                prestation.pureItems.forEach((pure, pureIndex) => {
-                    pure.details.forEach((detail, detailIndex) => {
-                        const id = `pure-${prestationIndex}-${pureIndex}-${detailIndex}`;
-                        const maxQty = detail.maxEntries ? Math.max(...Object.keys(detail.maxEntries).map(Number)) : 1;
-                        this.kioskItems[id] = {
-                            name: detail.name,
-                            category: detail.category || '',
-                            price: parseFloat(detail.price) || 0,
-                            maxEntries: detail.maxEntries || { 1: 1 },
-                            currentMaxEntries: (detail.maxEntries && detail.maxEntries[1]) ? detail.maxEntries[1] : 1,
-                            discount: parseFloat(detail.discount) || 0,
-                            qty: 0,
-                            maxQty: maxQty
-                        };
-                        this.kioskPureContainer.innerHTML += this.createKioskItemHTML(id, detail.name, detail.price, detail.maxEntries);
-                    });
-                });
-            }
-        });
-        
-        this.kioskAccessSection.style.display = hasAccess ? 'block' : 'none';
-        this.kioskPureSection.style.display = hasPure ? 'block' : 'none';
-        this.kioskSeparator.style.display = (hasAccess && hasPure) ? 'block' : 'none';
+                    const id = `pure-${prestationIndex}-${pureIndex}-${detailIndex}`;
+                    // On stocke l'objet complet pour le rendu
+                    pureItemsGrouped[category].push({ id, detail }); 
 
-        this.attachKioskQuantityListeners();
-        this.updateKioskTotal();
+                    // On enregistre l'article pour le suivi des quantités
+                    this.kioskItems[id] = {
+                        name: detail.name,
+                        category: detail.category || '',
+                        price: parseFloat(detail.price) || 0,
+                        maxEntries: detail.maxEntries || { 1: 1 },
+                        currentMaxEntries: (detail.maxEntries && detail.maxEntries[1]) ? detail.maxEntries[1] : 1,
+                        discount: parseFloat(detail.discount) || 0,
+                        qty: 0,
+                        maxQty: detail.maxEntries ? Math.max(...Object.keys(detail.maxEntries).map(Number)) : 1
+                    };
+                });
+            });
+        }
+    });
+
+    // 2. On construit le HTML à partir des groupes
+    if (hasPure) {
+        let pureHtml = '';
+        // On parcourt chaque catégorie (ex: 'WHISKY', 'Autres')
+        for (const category in pureItemsGrouped) {
+            // Ajoute le titre de la catégorie
+            pureHtml += `<div class="kiosk-item"><div class="kiosk-item-category">${this.sanitizeInput(category)}</div></div>`;
+            
+            // Ajoute chaque article de cette catégorie
+            pureItemsGrouped[category].forEach(item => {
+                pureHtml += this.createKioskItemHTML(item.id, item.detail.name, item.detail.price, item.detail.maxEntries);
+            });
+        }
+        this.kioskPureContainer.innerHTML = pureHtml;
     }
+
+    // --- Gestion de la visibilité (inchangé) ---
+    this.kioskAccessSection.style.display = hasAccess ? 'block' : 'none';
+    this.kioskPureSection.style.display = hasPure ? 'block' : 'none';
+    this.kioskSeparator.style.display = (hasAccess && hasPure) ? 'block' : 'none';
+
+    this.attachKioskQuantityListeners();
+    this.updateKioskTotal();
+}
 
     createKioskItemHTML(id, name, price, maxEntries = null) {
         let maxEntriesHTML = '';

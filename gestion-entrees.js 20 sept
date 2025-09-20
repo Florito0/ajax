@@ -541,11 +541,10 @@ resetInterfaceState() {
             <div class="name-section">
                 <div>
                     <label>Nom</label>
-                    <input type="text" placeholder="Ex: Bouteille" class="pure-name">
+                    <input type="text" placeholder="Ex: Bouteille 75cl" class="pure-name">
                 </div>
                 <div>
-                    <label>Qt. bouteilles</label>
-                    <input type="number" min="1" placeholder="Quantité" class="pure-qty">
+                    <input type="hidden" class="pure-qty" value="1">
                 </div>
                 <div>
                     <label>Prix</label>
@@ -569,6 +568,19 @@ resetInterfaceState() {
 
         this.pureContainer.appendChild(pureDiv);
         this.bindPureEvents(pureDiv);
+
+        // Cet écouteur se charge de la synchronisation.
+    const mainNameInput = pureDiv.querySelector('.name-section .pure-name');
+    mainNameInput.addEventListener('input', (e) => {
+        const currentName = e.target.value;
+        const parentRow = e.target.closest('.pure-row');
+        if (parentRow) {
+            const detailNameInputs = parentRow.querySelectorAll('.details-section .pure-name');
+            detailNameInputs.forEach(input => {
+                input.value = currentName;
+            });
+        }
+    });
     }
 
     bindPureEvents(pureDiv) {
@@ -603,57 +615,59 @@ resetInterfaceState() {
         }
     }
 
-    addDetails(button) {
-        const detailsSection = button.parentElement;
-        const pureRow = detailsSection.parentElement;
-        const nameSection = pureRow.querySelector('.name-section');
-        const lastDetailsRow = detailsSection.querySelector('.details-row:last-child') || nameSection;
+    // DANS LA CLASSE GestionEntrees
 
-        const newDetailsRow = document.createElement('div');
-        newDetailsRow.className = 'details-row';
+// DANS LA CLASSE GestionEntrees
 
-        const sourceMaxEntries = lastDetailsRow.querySelector('.pure-max-entries')?.dataset.maxEntries || JSON.stringify({ 1: 1 });
+// DANS LA CLASSE GestionEntrees
 
-        newDetailsRow.innerHTML = `
-            <div>
-                <label>Nom</label>
-                <input type="text" value="${this.sanitizeInput(lastDetailsRow.querySelector('.pure-name')?.value || '')}" class="pure-name">
-            </div>
-            <div>
-                <label>Qt. bouteilles</label>
-                <input type="number" min="1" value="${lastDetailsRow.querySelector('.pure-qty')?.value || ''}" class="pure-qty">
-            </div>
-            <div>
-                <label>Prix</label>
-                <input type="number" step="0.01" min="0" value="${lastDetailsRow.querySelector('.pure-price')?.value || ''}" class="pure-price">
-            </div>
-            <div>
-                <label>Max. Entrée</label>
-                <input type="text" placeholder="Cliquez pour définir" class="pure-max-entries" readonly 
-                       data-max-entries='${sourceMaxEntries}'>
-            </div>
-            <div>
-                <label>Réduc. bouteille suppl.</label>
-                <input type="number" step="0.01" min="0" value="${lastDetailsRow.querySelector('.pure-discount')?.value || ''}" class="pure-discount">
-            </div>
-            <button type="button" class="delete-details-btn" aria-label="Supprimer les détails">🗑️</button>
-        `;
+addDetails(button) {
+    const detailsSection = button.parentElement;
+    const pureRow = detailsSection.parentElement;
+    const nameSection = pureRow.querySelector('.name-section');
+    const lastDetailsRow = detailsSection.querySelector('.details-row:last-child') || nameSection;
 
-        detailsSection.insertBefore(newDetailsRow, button);
+    const newDetailsRow = document.createElement('div');
+    newDetailsRow.className = 'details-row';
 
-        const maxEntriesInput = newDetailsRow.querySelector('.pure-max-entries');
-        maxEntriesInput.addEventListener('click', () => this.showMaxEntriesEditor(maxEntriesInput));
+    const sourceMaxEntries = lastDetailsRow.querySelector('.pure-max-entries')?.dataset.maxEntries || JSON.stringify({ 1: 1 });
+    
+    const mainName = nameSection.querySelector('.pure-name')?.value || '';
+
+    newDetailsRow.innerHTML = `
+        <div>
+            <label>Nom</label>
+            <input type="text" value="${this.sanitizeInput(mainName)}" 
+                   placeholder="Nom de la formule" class="pure-name" readonly>
+        </div>
+
+        <input type="hidden" class="pure-qty" value="1">
         
-        const deleteBtn = newDetailsRow.querySelector('.delete-details-btn');
-        deleteBtn.addEventListener('click', () => this.deleteDetails(deleteBtn));
+        <div>
+            <label>Prix</label>
+            <input type="number" step="0.01" min="0" value="" placeholder="Prix (€)" class="pure-price">
+        </div>
+        <div>
+            <label>Entrées Incluses</label>
+            <input type="text" placeholder="Cliquez pour définir" class="pure-max-entries" readonly 
+                   data-max-entries='${sourceMaxEntries}'>
+        </div>
+        <div>
+            <label>Réduc. bouteille suppl.</label>
+            <input type="number" step="0.01" min="0" value="" placeholder="Réduction (€)" class="pure-discount">
+        </div>
+        <button type="button" class="delete-details-btn" aria-label="Supprimer les détails">🗑️</button>
+    `;
 
-        const sourceMaxInput = lastDetailsRow.querySelector('.pure-max-entries');
-        if (sourceMaxInput && sourceMaxInput.dataset.maxEntries) {
-            maxEntriesInput.value = sourceMaxInput.value || 'Cliquez pour définir';
-        } else {
-            maxEntriesInput.value = '1=1';
-        }
-    }
+    detailsSection.insertBefore(newDetailsRow, button);
+
+    // ... le reste de la fonction ne change pas ...
+    const maxEntriesInput = newDetailsRow.querySelector('.pure-max-entries');
+    maxEntriesInput.addEventListener('click', () => this.showMaxEntriesEditor(maxEntriesInput));
+    
+    const deleteBtn = newDetailsRow.querySelector('.delete-details-btn');
+    deleteBtn.addEventListener('click', () => this.deleteDetails(deleteBtn));
+}
 
     deleteDetails(button) {
         button.closest('.details-row').remove();
@@ -1842,4 +1856,4 @@ if (confirmed) {
     });
 }
     
-}
+} // Fin de la classe GestionEntrees

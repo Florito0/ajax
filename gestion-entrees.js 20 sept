@@ -1084,57 +1084,93 @@ addDetails(button) {
     // --- AFFICHAGE ---
 
      renderPrestations() {
-        if (this.dashboardContainer) this.dashboardContainer.classList.remove('preview-active');
-        if (!this.accessList || !this.pureList) return;
+    if (this.dashboardContainer) this.dashboardContainer.classList.remove('preview-active');
+    if (!this.accessList || !this.pureList) return;
 
-        
-        if (this.previewBtn) {
-            this.previewBtn.classList.remove('active');
-        }
-        
-        this.isPreviewActive = false;
-        
-        this.accessList.innerHTML = '';
-        this.pureList.innerHTML = '';
+    if (this.previewBtn) {
+        this.previewBtn.classList.remove('active');
+    }
+    
+    this.isPreviewActive = false;
+    
+    // Vider les listes au début
+    this.accessList.innerHTML = '';
+    this.pureList.innerHTML = '';
 
-        const filteredPrestations = this.selectedDayFilter 
-            ? this.prestations.filter(p => p.days && p.days.includes(this.selectedDayFilter)) 
-            : [...this.prestations];
+    // Supprimer le message existant s'il y en a un
+    const existingMessage = document.querySelector('.no-selection-message');
+    if (existingMessage) {
+        existingMessage.remove();
+    }
 
-        let hasAccess = false;
-        let hasPure = false;
-
-        if (filteredPrestations.some(p => this.hasAccessData(p))) {
-            hasAccess = true;
-            this.accessList.innerHTML = this.getAccessHeaderHtml();
-        }
-
-        if (filteredPrestations.some(p => p.pureItems && p.pureItems.length > 0)) {
-            hasPure = true;
-            this.pureList.innerHTML = this.getPureHeaderHtml();
-        }
-
-        filteredPrestations.forEach((prestation, index) => {
-            if (this.hasAccessData(prestation)) {
-                this.renderAccessPrestation(prestation, index);
-            }
-            
-            if (prestation.pureItems && prestation.pureItems.length > 0) {
-                this.renderPurePrestation(prestation, index);
-            }
-        });
-
-       this.accessList.style.display = hasAccess ? '' : 'none';
-        this.pureList.style.display = hasPure ? '' : 'none';
+    // NOUVELLE LOGIQUE : Si aucun jour n'est sélectionné, afficher une section vide
+    if (!this.selectedDayFilter) {
+        // Masquer complètement les sections
+        this.accessList.style.display = 'none';
+        this.pureList.style.display = 'none';
         
         if (this.separatorLine) {
-            this.separatorLine.style.display = (hasAccess && hasPure) ? 'block' : 'none';
+            this.separatorLine.style.display = 'none';
         }
-
-        this.attachPrestationEvents();
-        this.updateOrderNumbers();
-        this.bindSectionToggleEvents();
+        
+        // Afficher un message d'instruction
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'no-selection-message';
+        messageDiv.style.cssText = `
+            text-align: center;
+            padding: 0px 20px;
+            color: #b3b3b3;
+            font-size: 14px;
+            font-style: italic;
+        `;
+        messageDiv.textContent = 'Sélectionnez un jour pour voir les prestations correspondantes';
+        
+        // Insérer le message dans le conteneur des prestations actuelles
+        const currentPrestationsContainer = document.querySelector('.current-prestations');
+        if (currentPrestationsContainer) {
+            currentPrestationsContainer.appendChild(messageDiv);
+        }
+        
+        return; // Arrêter l'exécution ici si aucun jour n'est sélectionné
     }
+
+    // LOGIQUE EXISTANTE : Si un jour est sélectionné, procéder normalement
+    const filteredPrestations = this.prestations.filter(p => p.days && p.days.includes(this.selectedDayFilter));
+
+    let hasAccess = false;
+    let hasPure = false;
+
+    if (filteredPrestations.some(p => this.hasAccessData(p))) {
+        hasAccess = true;
+        this.accessList.innerHTML = this.getAccessHeaderHtml();
+    }
+
+    if (filteredPrestations.some(p => p.pureItems && p.pureItems.length > 0)) {
+        hasPure = true;
+        this.pureList.innerHTML = this.getPureHeaderHtml();
+    }
+
+    filteredPrestations.forEach((prestation, index) => {
+        if (this.hasAccessData(prestation)) {
+            this.renderAccessPrestation(prestation, index);
+        }
+        
+        if (prestation.pureItems && prestation.pureItems.length > 0) {
+            this.renderPurePrestation(prestation, index);
+        }
+    });
+
+    this.accessList.style.display = hasAccess ? '' : 'none';
+    this.pureList.style.display = hasPure ? '' : 'none';
+    
+    if (this.separatorLine) {
+        this.separatorLine.style.display = (hasAccess && hasPure) ? 'block' : 'none';
+    }
+
+    this.attachPrestationEvents();
+    this.updateOrderNumbers();
+    this.bindSectionToggleEvents();
+}
 
  bindSectionToggleEvents() {
     const toggleAccessBtn = document.getElementById('toggle-access-section');

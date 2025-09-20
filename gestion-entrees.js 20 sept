@@ -638,7 +638,7 @@ addDetails(button) {
         <div>
             <label>Nom</label>
             <input type="text" value="${this.sanitizeInput(mainName)}" 
-                   placeholder="Nom de la formule" class="pure-name" readonly>
+                   placeholder="Nom de la formule" class="pure-name">
         </div>
 
         <input type="hidden" class="pure-qty" value="1">

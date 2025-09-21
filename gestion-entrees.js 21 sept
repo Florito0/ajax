@@ -560,8 +560,8 @@ resetInterfaceState() {
             </div>
             <div class="pure-row-actions">
                 <div class="move-buttons-group">
-                    <button type="button" class="pure-move-btn" data-direction="up" aria-label="Monter">▲</button>
-                    <button type="button" class="pure-move-btn" data-direction="down" aria-label="Descendre">▼</button>
+                    <button type="button" class="detail-move-btn" data-direction="up" aria-label="Monter cette ligne">▲</button>
+                    <button type="button" class="detail-move-btn" data-direction="down" aria-label="Descendre cette ligne">▼</button>
                 </div>
                 <div class="action-buttons-group">
                     <button type="button" class="pure-duplicate-btn" aria-label="Dupliquer la formule">📋</button>
@@ -591,6 +591,73 @@ resetInterfaceState() {
     });
 }
 
+// Fonction bindPureEvents() corrigée
+bindPureEvents(pureDiv) {
+    const duplicateBtn = pureDiv.querySelector('.pure-duplicate-btn');
+    duplicateBtn.addEventListener('click', () => this.duplicatePure(duplicateBtn));
+
+    const deleteBtn = pureDiv.querySelector('.pure-delete-btn');
+    deleteBtn.addEventListener('click', () => this.deletePure(deleteBtn));
+
+    const addDetailsBtn = pureDiv.querySelector('.add-details-btn');
+    addDetailsBtn.addEventListener('click', () => this.addDetails(addDetailsBtn));
+
+    const maxEntriesInput = pureDiv.querySelector('.pure-max-entries');
+    maxEntriesInput.addEventListener('click', () => this.showMaxEntriesEditor(maxEntriesInput));
+
+    // ✅ SUPPRIMÉ : Les événements pour les boutons pure-move-btn qui n'existent plus
+    // pureDiv.querySelectorAll('.pure-move-btn').forEach(btn => {
+    //     btn.addEventListener('click', () => this.movePureRow(btn));
+    // });
+
+    // ✅ Événements pour les boutons de déplacement des détails (y compris name-section)
+    pureDiv.querySelectorAll('.detail-move-btn').forEach(btn => {
+        btn.addEventListener('click', () => {
+            if (btn.closest('.name-section')) {
+                this.moveNameSection(btn);
+            } else {
+                this.moveDetailRow(btn);
+            }
+        });
+    });
+}
+
+// Fonction moveNameSection() corrigée pour une navigation complète
+moveNameSection(button) {
+    const direction = button.dataset.direction;
+    const nameSection = button.closest('.name-section');
+    const pureRow = nameSection.closest('.pure-row');
+    const detailsSection = pureRow.querySelector('.details-section');
+    const addDetailsBtn = detailsSection.querySelector('.add-details-btn');
+    
+    // Obtenir tous les details-row
+    const detailsRows = Array.from(detailsSection.querySelectorAll('.details-row'));
+    
+    if (detailsRows.length === 0) return; // Pas de details-row à manipuler
+    
+    // Construire la liste complète des éléments dans leur ordre actuel dans le DOM
+    const allElementsInDOM = [];
+    const detailsSectionChildren = Array.from(detailsSection.children);
+    
+    detailsSectionChildren.forEach(child => {
+        if (child === nameSection || child.classList.contains('details-row')) {
+            allElementsInDOM.push(child);
+        }
+    });
+    
+    const currentIndex = allElementsInDOM.indexOf(nameSection);
+    
+    if (direction === 'down' && currentIndex < allElementsInDOM.length - 1) {
+        // Déplacer vers le bas : après l'élément suivant
+        const nextElement = allElementsInDOM[currentIndex + 1];
+        nextElement.after(nameSection);
+    } else if (direction === 'up' && currentIndex > 0) {
+        // Déplacer vers le haut : avant l'élément précédent
+        const prevElement = allElementsInDOM[currentIndex - 1];
+        prevElement.before(nameSection);
+    }
+}
+
 // Nouvelle fonction pour déplacer les pure-row
 movePureRow(button) {
     const direction = button.dataset.direction;
@@ -607,26 +674,6 @@ movePureRow(button) {
             nextRow.after(rowToMove);
         }
     }
-}
-
-// Correction de la fonction bindPureEvents()
-bindPureEvents(pureDiv) {
-    const duplicateBtn = pureDiv.querySelector('.pure-duplicate-btn');
-    duplicateBtn.addEventListener('click', () => this.duplicatePure(duplicateBtn));
-
-    const deleteBtn = pureDiv.querySelector('.pure-delete-btn');
-    deleteBtn.addEventListener('click', () => this.deletePure(deleteBtn));
-
-    const addDetailsBtn = pureDiv.querySelector('.add-details-btn');
-    addDetailsBtn.addEventListener('click', () => this.addDetails(addDetailsBtn));
-
-    const maxEntriesInput = pureDiv.querySelector('.pure-max-entries');
-    maxEntriesInput.addEventListener('click', () => this.showMaxEntriesEditor(maxEntriesInput));
-
-    // Ajouter les événements pour les boutons de déplacement des pure-row
-    pureDiv.querySelectorAll('.pure-move-btn').forEach(btn => {
-        btn.addEventListener('click', () => this.movePureRow(btn));
-    });
 }
 
     duplicatePure(button) {
@@ -707,16 +754,35 @@ addDetails(button) {
 moveDetailRow(button) {
     const direction = button.dataset.direction;
     const rowToMove = button.closest('.details-row');
-
-    if (direction === 'up') {
-        const previousRow = rowToMove.previousElementSibling;
-        if (previousRow && previousRow.classList.contains('details-row')) {
-            previousRow.before(rowToMove);
+    const pureRow = rowToMove.closest('.pure-row');
+    const nameSection = pureRow.querySelector('.name-section');
+    const detailsSection = pureRow.querySelector('.details-section');
+    
+    // Obtenir tous les éléments réorganisables (name-section + details-rows)
+    const allMovableElements = [
+        nameSection,
+        ...Array.from(detailsSection.querySelectorAll('.details-row'))
+    ];
+    
+    const currentIndex = allMovableElements.indexOf(rowToMove);
+    
+    if (direction === 'up' && currentIndex > 1) {
+        // Déplacer vers le haut
+        const targetElement = allMovableElements[currentIndex - 1];
+        
+        if (targetElement === nameSection) {
+            // Si on remonte avant la name-section, l'insérer au début de details-section
+            detailsSection.insertBefore(rowToMove, detailsSection.firstChild);
+        } else {
+            // Sinon, insérer avant l'élément cible
+            targetElement.before(rowToMove);
         }
-    } else if (direction === 'down') {
-        const nextRow = rowToMove.nextElementSibling;
-        if (nextRow && nextRow.classList.contains('details-row')) {
-            nextRow.after(rowToMove);
+    } else if (direction === 'down' && currentIndex < allMovableElements.length - 1 && currentIndex !== -1) {
+        // Déplacer vers le bas
+        const targetElement = allMovableElements[currentIndex + 1];
+        
+        if (targetElement) {
+            targetElement.after(rowToMove);
         }
     }
 }

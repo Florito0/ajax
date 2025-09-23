@@ -1404,7 +1404,7 @@ getPureHeaderHtml() {
                 <div class="prestation-value prestation-sex">${this.sanitizeInput(row.sex || '-')}</div>
                 <div class="button-container">
                     ${rowIndex === 0 ? `
-                        <button class="edit-btn" aria-label="Éditer la prestation" data-index="${index}">✏️</button>
+                        <button class="edit-btn" aria-label="Éditer la prestation" data-id="${prestation.id}">✏️</button>
                         <button class="delete-btn" aria-label="Supprimer la prestation" data-index="${index}">🗑️</button>
                     ` : ''}
                 </div>
@@ -1456,7 +1456,7 @@ getPureHeaderHtml() {
                         <div class="prestation-discount">${detail.discount ? `${detail.discount}€` : '-'}</div>
                         <div class="button-container">
                             ${showButtons ? `
-                                <button class="edit-btn" aria-label="Éditer la prestation" data-index="${index}">✏️</button>
+                                <button class="edit-btn" aria-label="Éditer la prestation" data-id="${prestation.id}">✏️</button>
                                 <button class="delete-btn" aria-label="Supprimer la prestation" data-index="${index}">🗑️</button>
                             ` : ''}
                         </div>
@@ -1496,11 +1496,15 @@ getPureHeaderHtml() {
 
     attachPrestationEvents() {
         document.querySelectorAll('.edit-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const index = parseInt(e.target.dataset.index);
-                this.editPrestation(index);
-            });
-        });
+    btn.addEventListener('click', (e) => {
+        // On récupère le bouton, même si on clique sur l'icône à l'intérieur
+        const button = e.currentTarget; 
+        const id = button.dataset.id; // On récupère l'ID
+        if (id) {
+            this.editPrestation(id); // On passe l'ID à la fonction
+        }
+    });
+});
 
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', async (e) => {
@@ -1523,39 +1527,43 @@ if (confirmed) {
 
     // --- ÉDITION ---
 
-    editPrestation(index) {
-        const prestation = this.prestations[index];
-        if (!prestation) return;
-
-        this.editingPrestationId = prestation.id;
-
-        document.querySelectorAll('input[name="days"]').forEach(checkbox => {
-            checkbox.checked = prestation.days && prestation.days.includes(checkbox.value);
-        });
-        this.accessPresentationLow.value = prestation.presentationLow || '';
-        this.accessPresentationNormal.value = prestation.presentationNormal || '';
-        this.accessPresentationAlcohol.value = prestation.presentationAlcohol || '';
-        this.accessPresentationSoft.value = prestation.presentationSoft || '';
-        this.accessPrice.value = prestation.price || '';
-        this.accessSex.value = prestation.sex || 'H/F';
-        this.pureContainer.innerHTML = '';
-        if (prestation.pureItems && prestation.pureItems.length > 0) {
-            prestation.pureItems.forEach(pure => {
-                this.loadPureItem(pure);
-            });
-        }
-        if (this.pureContainer.children.length === 0) {
-            this.addPure();
-        }
-
-        this.accessList.style.opacity = '0.5';
-        this.pureList.style.opacity = '0.5';
-        
-        const formElement = document.getElementById('access-form');
-        if (formElement) {
-            formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
-        }
+    editPrestation(id) {
+    // On utilise find() pour trouver la prestation avec le bon ID dans la liste complète
+    const prestation = this.prestations.find(p => p.id == id); 
+    if (!prestation) {
+        console.error("Prestation non trouvée avec l'ID:", id);
+        return;
     }
+    // Le reste de votre code ne change pas
+    this.editingPrestationId = prestation.id;
+
+    document.querySelectorAll('input[name="days"]').forEach(checkbox => {
+        checkbox.checked = prestation.days && prestation.days.includes(checkbox.value);
+    });
+    this.accessPresentationLow.value = prestation.presentationLow || '';
+    this.accessPresentationNormal.value = prestation.presentationNormal || '';
+    this.accessPresentationAlcohol.value = prestation.presentationAlcohol || '';
+    this.accessPresentationSoft.value = prestation.presentationSoft || '';
+    this.accessPrice.value = prestation.price || '';
+    this.accessSex.value = prestation.sex || 'H/F';
+    this.pureContainer.innerHTML = '';
+    if (prestation.pureItems && prestation.pureItems.length > 0) {
+        prestation.pureItems.forEach(pure => {
+            this.loadPureItem(pure);
+        });
+    }
+    if (this.pureContainer.children.length === 0) {
+        this.addPure();
+    }
+
+    this.accessList.style.opacity = '0.5';
+    this.pureList.style.opacity = '0.5';
+    
+    const formElement = document.getElementById('access-form');
+    if (formElement) {
+        formElement.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+}
   
     loadPureItem(pure) {
     const pureDiv = document.createElement('div');

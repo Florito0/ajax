@@ -1014,77 +1014,53 @@ moveDetailRow(button) {
     }
 
     validatePureSoiree() {
-        const pureRows = document.querySelectorAll('.pure-row');
-        let errors = [];
-        let hasValidRow = false;
+    const pureRows = document.querySelectorAll('.pure-row');
+    let errors = [];
+    let hasValidRow = false;
 
-        pureRows.forEach((row, index) => {
-            const name = row.querySelector('.name-section .pure-name');
-            const qty = row.querySelector('.name-section .pure-qty');
-            const price = row.querySelector('.name-section .pure-price');
-            const maxEntries = row.querySelector('.name-section .pure-max-entries');
+    pureRows.forEach((row, index) => {
+        const name = row.querySelector('.name-section .pure-name');
+        const price = row.querySelector('.name-section .pure-price');
+        const maxEntries = row.querySelector('.name-section .pure-max-entries');
+        const category = row.querySelector('.pure-category-input'); // Ajout pour une validation plus complète
+        const discount = row.querySelector('.name-section .pure-discount'); // Ajout pour une validation plus complète
 
-            [name, qty, price, maxEntries].forEach(el => el && el.classList.remove('error'));
+        // On réinitialise l'état d'erreur pour tous les champs
+        [name, price, maxEntries, category, discount].forEach(el => el && el.classList.remove('error'));
 
-            const additionalDetails = row.querySelectorAll('.details-section .details-row');
-            additionalDetails.forEach(detailRow => {
-                detailRow.querySelectorAll('input').forEach(input => input.classList.remove('error'));
-            });
+        // NOUVELLE LOGIQUE : On vérifie si l'utilisateur a réellement commencé à remplir la ligne
+        const isRowPartiallyFilled = name.value.trim() !== '' || 
+                                     price.value.trim() !== '' || 
+                                     category.value.trim() !== '' || 
+                                     discount.value.trim() !== '';
 
-            const isRowValid = name.value.trim() && 
-                              qty.value && 
-                              price.value && 
-                              (maxEntries.dataset.maxEntries && maxEntries.dataset.maxEntries !== '{}');
+        const isRowFullyValid = name.value.trim() &&
+                                price.value &&
+                                (maxEntries.dataset.maxEntries && maxEntries.dataset.maxEntries !== '{}');
 
-            if (isRowValid) {
-                hasValidRow = true;
+        if (isRowFullyValid) {
+            hasValidRow = true;
 
-                additionalDetails.forEach((detailRow, detailIndex) => {
-                    const nameDetail = detailRow.querySelector('.pure-name');
-                    const qtyDetail = detailRow.querySelector('.pure-qty');
-                    const priceDetail = detailRow.querySelector('.pure-price');
-                    const maxEntriesDetail = detailRow.querySelector('.pure-max-entries');
-
-                    if (!nameDetail.value.trim()) {
-                        errors.push(`Veuillez remplir le champ "Nom" dans la ligne supplémentaire ${detailIndex + 1} de la ligne ${index + 1}.`);
-                        nameDetail.classList.add('error');
-                    }
-                    if (!qtyDetail.value) {
-                        errors.push(`Veuillez remplir le champ "Qt. bouteilles" dans la ligne supplémentaire ${detailIndex + 1} de la ligne ${index + 1}.`);
-                        qtyDetail.classList.add('error');
-                    }
-                    if (!priceDetail.value) {
-                        errors.push(`Veuillez remplir le champ "Prix" dans la ligne supplémentaire ${detailIndex + 1} de la ligne ${index + 1}.`);
-                        priceDetail.classList.add('error');
-                    }
-                    if (!maxEntriesDetail.dataset.maxEntries || maxEntriesDetail.dataset.maxEntries === '{}') {
-                        errors.push(`Veuillez définir "Max. Entrée" dans la ligne supplémentaire ${detailIndex + 1} de la ligne ${index + 1}.`);
-                        maxEntriesDetail.classList.add('error');
-                    }
-                });
-            } else if (name.value.trim() || qty.value || price.value || 
-                      (maxEntries.dataset.maxEntries && maxEntries.dataset.maxEntries !== '{}')) {
-                if (!name.value.trim()) {
-                    errors.push(`Veuillez remplir le champ "Nom" dans la ligne ${index + 1}.`);
-                    name.classList.add('error');
-                }
-                if (!qty.value) {
-                    errors.push(`Veuillez remplir le champ "Qt. bouteilles" dans la ligne ${index + 1}.`);
-                    qty.classList.add('error');
-                }
-                if (!price.value) {
-                    errors.push(`Veuillez remplir le champ "Prix" dans la ligne ${index + 1}.`);
-                    price.classList.add('error');
-                }
-                if (!maxEntries.dataset.maxEntries || maxEntries.dataset.maxEntries === '{}') {
-                    errors.push(`Veuillez définir "Max. Entrée" dans la ligne ${index + 1}.`);
-                    maxEntries.classList.add('error');
-                }
+        } 
+        // On ne déclenche les erreurs que si la ligne a été entamée mais est invalide
+        else if (isRowPartiallyFilled) {
+            if (!name.value.trim()) {
+                errors.push(`Veuillez remplir le champ "Nom" dans la ligne de bouteille ${index + 1}.`);
+                name.classList.add('error');
             }
-        });
+            if (!price.value) {
+                errors.push(`Veuillez remplir le champ "Prix" dans la ligne de bouteille ${index + 1}.`);
+                price.classList.add('error');
+            }
+            if (!maxEntries.dataset.maxEntries || maxEntries.dataset.maxEntries === '{}') {
+                errors.push(`Veuillez définir "Max. Entrée" dans la ligne de bouteille ${index + 1}.`);
+                maxEntries.classList.add('error');
+            }
+        }
+    });
 
-        return { errors, hasValidRow };
-    }
+    return { errors, hasValidRow };
+}
 
     // --- SAUVEGARDE ---
 
@@ -2033,4 +2009,4 @@ if (confirmed) {
     });
 }
     
-} // Fin de la classe GestionEntrees
+}

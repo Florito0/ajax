@@ -1,0 +1,30 @@
+const express = require('express');
+const router = express.Router();
+const {
+    getEntrees,
+    createEntree,
+    updateEntree,
+    deleteEntree,
+    getEntreeById,
+    getEntreesByDay
+} = require('../Controllers/entreesController');
+
+// GET /api/entrees - Récupérer toutes les prestations d'entrée
+router.get('/', getEntrees);
+
+// GET /api/entrees/day/:day - Récupérer les prestations par jour
+router.get('/day/:day', getEntreesByDay);
+
+// GET /api/entrees/:id - Récupérer une prestation spécifique
+router.get('/:id', getEntreeById);
+
+// POST /api/entrees - Créer une nouvelle prestation d'entrée
+router.post('/', createEntree);
+
+// PUT /api/entrees/:id - Mettre à jour une prestation d'entrée
+router.put('/:id', updateEntree);
+
+// DELETE /api/entrees/:id - Supprimer une prestation d'entrée
+router.delete('/:id', deleteEntree);
+
+module.exports = router;

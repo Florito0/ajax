@@ -72,9 +72,63 @@
     max-width: 600px;
     margin: 60px auto 20px auto;
     padding: 20px;
-    overflow: hidden;
+    overflow: hidden; /* Déjà présent, mais important */
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     box-sizing: border-box;
+    position: relative; /* INDISPENSABLE pour positionner les pseudo-éléments */
+    z-index: 1; /* S'assure que le fond reste derrière le contenu */
+}
+
+/* 1. APPLICATION DU FOND SUR TOUT LE CONTENEUR */
+.kiosk-container::before,
+#kiosk-view .container::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    /* Le style de fond que vous avez demandé */
+    background: linear-gradient(to right, 
+        rgba(255, 255, 255, 0.03), 
+        rgba(255, 255, 255, 0.06), 
+        rgba(255, 255, 255, 0.03)
+    );
+    opacity: 0.5;
+    /* z-index négatif pour le placer derrière le contenu du kiosque */
+    z-index: -1; 
+}
+
+/* 2. AJOUT DE LA LIGNE LUMINEUSE EN HAUT DU CONTENEUR */
+.kiosk-container::after,
+#kiosk-view .container::after {
+    content: '';
+    position: absolute;
+    /* Positionné en haut */
+    top: 0; 
+    left: 50%;
+    transform: translateX(-50%);
+    width: 80%; /* Ajusté pour une meilleure esthétique sur un conteneur large */
+    height: 10px;
+    /* L'effet lumineux que vous avez demandé */
+    background: linear-gradient(
+        90deg,
+        transparent 0%,
+        rgba(255, 255, 255, 0) 5%,
+        rgba(255, 255, 255, 0.2) 15%,
+        rgba(255, 255, 255, 0.4) 25%,
+        rgba(255, 255, 255, 0.7) 40%,
+        rgba(255, 255, 255, 1) 50%,
+        rgba(255, 255, 255, 0.7) 60%,
+        rgba(255, 255, 255, 0.4) 75%,
+        rgba(255, 255, 255, 0.2) 85%,
+        rgba(255, 255, 255, 0) 95%,
+        transparent 100%
+    );
+    animation: luxuryPulse 4s ease-in-out infinite;
+    filter: blur(5px);
+    /* z-index négatif mais supérieur à celui du fond pour être visible */
+    z-index: -1; 
 }
 
 /* En-tête du kiosque */

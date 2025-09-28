@@ -66,20 +66,21 @@
 /* Container principal du kiosque */
 .kiosk-container,
 #kiosk-view .container {
-    background-color: #1e1e1e;
+    /* ÉTAPE 1: On rend le fond de base transparent */
+    background-color: transparent; 
     border-radius: 12px;
     width: 100%;
     max-width: 600px;
     margin: 60px auto 20px auto;
     padding: 20px;
-    overflow: hidden; /* Déjà présent, mais important */
+    overflow: hidden;
     box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
     box-sizing: border-box;
-    position: relative; /* INDISPENSABLE pour positionner les pseudo-éléments */
-    z-index: 1; /* S'assure que le fond reste derrière le contenu */
+    position: relative; /* On garde cette ligne, elle est essentielle */
+    z-index: 1;
 }
 
-/* 1. APPLICATION DU FOND SUR TOUT LE CONTENEUR */
+/* ÉTAPE 2: Le ::before gère maintenant le fond de base ET le dégradé */
 .kiosk-container::before,
 #kiosk-view .container::before {
     content: '';
@@ -88,29 +89,28 @@
     left: 0;
     width: 100%;
     height: 100%;
-    /* Le style de fond que vous avez demandé */
-    background: linear-gradient(to right, 
-        rgba(255, 255, 255, 0.03), 
-        rgba(255, 255, 255, 0.06), 
-        rgba(255, 255, 255, 0.03)
-    );
-    opacity: 0.5;
-    /* z-index négatif pour le placer derrière le contenu du kiosque */
+    /* On combine la couleur de fond et le dégradé en une seule propriété */
+    background: 
+        linear-gradient(to right, 
+            rgba(255, 255, 255, 0.03), 
+            rgba(255, 255, 255, 0.06), 
+            rgba(255, 255, 255, 0.03)
+        ),
+        #1e1e1e; /* Ceci est votre couleur de fond de base */
+    opacity: 1; /* L'opacité est gérée par les RGBA, on la met à 1 ici */
     z-index: -1; 
 }
 
-/* 2. AJOUT DE LA LIGNE LUMINEUSE EN HAUT DU CONTENEUR */
+/* ÉTAPE 3: On garde la ligne lumineuse en haut, elle fonctionnera maintenant */
 .kiosk-container::after,
 #kiosk-view .container::after {
     content: '';
     position: absolute;
-    /* Positionné en haut */
     top: 0; 
     left: 50%;
     transform: translateX(-50%);
-    width: 80%; /* Ajusté pour une meilleure esthétique sur un conteneur large */
+    width: 80%;
     height: 10px;
-    /* L'effet lumineux que vous avez demandé */
     background: linear-gradient(
         90deg,
         transparent 0%,
@@ -126,15 +126,12 @@
         transparent 100%
     );
     animation: luxuryPulse 4s ease-in-out infinite;
-    filter: blur(5px);
-    /* z-index négatif mais supérieur à celui du fond pour être visible */
+    filter: blur(3px);
     z-index: -1; 
 }
 
 /* En-tête du kiosque */
-
 #kiosk-view h1 {
-
     padding: 20px;
     text-align: center;
     font-size: 24px;
@@ -166,6 +163,16 @@
     color: #fbfbfb;
 }
 
+/* ÉTAPE 4: Simplifier le séparateur du milieu */
+.kiosk-separator,
+#kiosk-view .kiosk-separator {
+    width: 70%;
+    height: 1px; /* Réduit pour être plus subtil */
+    background: linear-gradient(to right, transparent, #999999, transparent);
+    margin: 40px auto;
+    opacity: 0.3;
+}
+
 /* Séparateur entre catégories avec effet VIP */
 .kiosk-separator,
 #kiosk-view .kiosk-separator {
@@ -178,7 +185,7 @@
     opacity: 0.7;
 }
 
-/* Effet de lueur blanche lumineuse élégante fixe au centre */
+/* Effet de lueur blanche lumineuse pour le séparateur */
 .kiosk-separator::after,
 #kiosk-view .kiosk-separator::after {
     content: '';
@@ -206,7 +213,7 @@
     filter: blur(2px);
 }
 
-/* Lueur secondaire pour effet de profondeur */
+/* Fond subtil pour le séparateur */
 .kiosk-separator::before,
 #kiosk-view .kiosk-separator::before {
     content: '';
@@ -225,10 +232,10 @@
 
 @keyframes luxuryPulse {
     0%, 100% {
-        opacity: 0.1;
+        opacity: 0.4;
     }
     50% {
-        opacity: 2;
+        opacity: 1;
     }
 }
 
